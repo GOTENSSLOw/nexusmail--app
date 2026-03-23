@@ -1,5 +1,6 @@
 import './Dashboard.css';
 import { FiEdit, FiInbox, FiPhone, FiSettings , FiLogOut} from 'react-icons/fi';
+import { useNavigate } from 'react-router-dom';
 
 const mockEmails = [
   {
@@ -28,6 +29,7 @@ const mockEmails = [
   }
 ];
 export const Dashboard = () => {
+    const navigate = useNavigate();
     const correosSinLeer = mockEmails.filter(email => email.unread === true).length;
     return (
         <div className="dashboard-container">
@@ -41,10 +43,10 @@ export const Dashboard = () => {
                     <a href="#" className="active"><FiInbox /> Bandeja de entrada <span className="badge">{correosSinLeer}</span></a>
                     <a href="#"><FiInbox /> Recibidos <span className="badge">5</span></a>
                     <a href="#"><FiEdit /> Enviados</a>
-                    <a href="#"><FiSettings /> Configuración</a>
+                    <a href="#"><FiSettings /> Configuración de cuenta</a>
                 </nav>
                 <div className="sidebar-footer">
-                    <button className="btn-logout"><FiLogOut /> Cerrar sesión</button>
+                    <button className="btn-logout" onClick={() => navigate('/login')}><FiLogOut /> Cerrar sesión</button>
                 </div>
             </aside>
             <main className="main-content">

@@ -1,11 +1,12 @@
 import './Login.css'; 
 import Logo from '../assets/Logo.png';
-import {useNavigate} from 'react-router-dom'
+import {Route, useNavigate, useNavigation} from 'react-router-dom'
 
 
 export const Login = () => {
     const navigate = useNavigate();
-    const handleLogin = () => {
+    const handleLogin = (e) => {
+        e.preventDefault();
         navigate('/inbox');
     };
     return (
@@ -19,30 +20,30 @@ export const Login = () => {
                 
                 <div className="login-hero">
                     <h2>Bienvenido</h2>
-                    <p>Ingresa  tus datos </p>
+                    <p>Ingresa tus datos </p>
                 </div>
                 
-                <form className="login-form">
+                <form className="login-form" onSubmit={handleLogin}>
                     
                     <div className="input-group">
-                        <label>nickname</label>
-                        <input type="text" placeholder="Ingresa tu nickname" />
+                        <label>Nickname</label>
+                        <input type="text" placeholder="Ingresa tu nickname" required />
                     </div>
 
                     <div className="input-group">
                         <div className="password-labels">
-                            <label>contraseña</label>
-                            <a href="#" className="forgot-link">olvidaste contraseña?</a>
+                            <label>Contraseña</label>
+                            <a href="#" className="forgot-link">¿Olvidaste tu contraseña?</a>
                         </div>
-                        <input type="password" placeholder="••••••••" />
+                        <input type="password" placeholder="••••••••" required />
                     </div>
 
                     <div className="checkbox-group">
                         <input type="checkbox" id="keep-signed" />
-                        <label htmlFor="keep-signed">Guardar sesion </label>
+                        <label htmlFor="keep-signed">¿Mantener sesión iniciada? </label>
                     </div>
 
-                    <button type="button" className="btn-primary" onClick={handleLogin}>
+                    <button type="submit" className="btn-primary">
                         Ingresar→
                     </button>
                 </form>

@@ -104,7 +104,8 @@
 
 
 .sidebar-footer {
-    padding-top: 20px;
+    align-items: center;
+    padding-bottom: 20px;
     border-top: 1px solid #e2e8f0;
 }
 
