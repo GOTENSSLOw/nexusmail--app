@@ -1,7 +1,13 @@
 import './Login.css'; 
 import Logo from '../assets/Logo.png';
+import {useNavigate} from 'react-router-dom'
+
 
 export const Login = () => {
+    const navigate = useNavigate();
+    const handleLogin = () => {
+        navigate('/inbox');
+    };
     return (
         <div className="login-container">
             <div className="login-card">
@@ -36,7 +42,9 @@ export const Login = () => {
                         <label htmlFor="keep-signed">Guardar sesion </label>
                     </div>
 
-                    <button type="button" className="btn-primary">Ingresar→</button>
+                    <button type="button" className="btn-primary" onClick={handleLogin}>
+                        Ingresar→
+                    </button>
                 </form>
             </div>
         </div>
