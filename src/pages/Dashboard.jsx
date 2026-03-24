@@ -40,8 +40,13 @@ export const Dashboard = () => {
                 <button className="btn-compose"> <FiEdit /> Compose</button>
 
                 <nav className="sidebar-menu">
-                    <a href="#" className="active"><FiInbox /> Bandeja de entrada <span className="badge">{correosSinLeer}</span></a>
-                    <a href="#"><FiInbox /> Recibidos <span className="badge">5</span></a>
+                    <a href="#" className="active"><FiInbox /> 
+                    Bandeja de entrada 
+                    <span className="badge">{correosSinLeer}</span>
+                    </a>
+                    <a href="#"><FiInbox /> Recibidos 
+                        <span className="badge"> 5</span>
+                    </a>
                     <a href="#"><FiEdit /> Enviados</a>
                     <a href="#"><FiSettings /> Configuración de cuenta</a>
                 </nav>
