@@ -1,4 +1,3 @@
-import { FiInbox } from 'react-icons/fi';
 import './Dashboard.css';
 
 const mockEmails = [
@@ -27,9 +26,7 @@ export const Dashboard = () => {
         <main className="main-content">
             <header className="top-header">
                 <input type="text" placeholder="escribe un mensaje..." className="search-bar"/>
-                <div className="header-icons">
-                    <span><FiInbox /></span>
-                </div>
+
             </header>
 
             <div className="email-list">

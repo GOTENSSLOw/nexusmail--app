@@ -10,6 +10,7 @@ export const Login = () => {
         navigate('/inbox');
     };
     return (
+        <div className="background-login">
         <div className="login-container">
             <div className="login-card">
                 
@@ -48,6 +49,7 @@ export const Login = () => {
                     </button>
                 </form>
             </div>
+        </div>
         </div>
     )
 }
