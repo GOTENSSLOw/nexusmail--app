@@ -1,0 +1,22 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+.accountsettings-container {
+    display: flex;
+    height: 100vh;
+    background-color: #f8fafc;
+}
+
+.accountsettings-container h1 {
+    font-size: 35px;
+    font-weight: 800;
+    color: #0f172a;
+    margin-top: 20px;
+    margin-bottom: 30px;
+    margin-left: 20px;
+    margin-right: 20px;
+}

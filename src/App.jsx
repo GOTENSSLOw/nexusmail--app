@@ -1,7 +1,8 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
-import {Login} from './pages/Login'
-import {Dashboard} from './pages/Dashboard'
-
+import { Login } from './pages/Login'
+import { Dashboard } from './pages/Dashboard'
+import { AccountSettings } from './pages/accountsettings'
+import { Layout } from './pages/Layout' 
 
 function App() {
   return (
@@ -9,10 +10,14 @@ function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/inbox" element={<Dashboard />} />
+        
+        {/* El Layout envuelve a las demas rutas*/}
+        <Route element={<Layout />}>
+          <Route path="/inbox" element={<Dashboard />} />
+          <Route path="/settings" element={<AccountSettings />} />
+        </Route>
       </Routes>
     </BrowserRouter>
   )
 }
-
 export default App
