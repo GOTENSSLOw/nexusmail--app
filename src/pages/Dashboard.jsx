@@ -1,5 +1,5 @@
 import { FiInbox } from 'react-icons/fi';
-import Dashboard from '../pages/Dashboard.css';
+import './Dashboard.css';
 
 const mockEmails = [
   { id: 1, sender: "Stripe Support", 
