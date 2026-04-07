@@ -48,25 +48,29 @@ dovecot-test:
 
 # Probar endpoints Django API
 django-test-send:
-	curl -s -X POST http://127.0.0.1:$(PORT)/api/send-email/ \
+	curl -X POST http://127.0.0.1:8000/api/send-email/ \
 		-H "Content-Type: application/json" \
-		-d '{"to":"user2@lan.local","subject":"Hola","body":"Prueba"}' | jq
+		-d '{"sender": "joao", "to":"uwu@lan.local","subject":"Hola","body":"Prueba"}'
 
 django-test-read:
-	curl -s -X GET "http://127.0.0.1:$(PORT)/api/read-emails/joao/?password=joao12345" \
-		-H "Content-Type: application/json" | jq
+	curl -s -X GET "http://127.0.0.1:$(PORT)/api/read-emails/uwu/?password=uwu12345" \
+		-H "Content-Type: application/json"
 
 create-user:
 	@read -p "Nombre de usuario: " USER; \
-	read -s -p "Contraseña: " PASS; echo ""; \
+	PASS=$${USER}12345; \
 	sudo useradd -m $$USER; \
 	echo "$$USER:$$PASS" | sudo chpasswd; \
 	sudo -u $$USER doveadm mailbox create -u $$USER INBOX; \
 	sudo -u $$USER doveadm mailbox create -u $$USER Sent; \
 	sudo -u $$USER doveadm mailbox create -u $$USER Trash; \
-	sudo -u $$USER mkdir -p /home/$$USER/Maildir/{cur,new,tmp} \
-	sudo setfacl -R -m u:$(DJANGO_USER):rx /home/$$USER/Maildir \
-	echo "Usuario $$USER creado con Maildir listo"
+	sudo -u $$USER mkdir -p /home/$$USER/Maildir/{cur,new,tmp}; \
+	# Aplicar ACL recursiva a todo el Maildir para que Django pueda leer
+	sudo setfacl -R -m u:$(DJANGO_USER):rx /home/$$USER/Maildir; \
+	sudo setfacl -R -m u:$(DJANGO_USER):r /home/$$USER/Maildir/cur; \
+	sudo setfacl -R -m u:$(DJANGO_USER):r /home/$$USER/Maildir/new; \
+	sudo setfacl -R -m u:$(DJANGO_USER):r /home/$$USER/Maildir/tmp; \
+	echo "Usuario $$USER creado con Maildir listo y contraseña $$PASS para $(DJANGO_USER)"
 
 # Eliminar usuario de prueba
 delete-user:

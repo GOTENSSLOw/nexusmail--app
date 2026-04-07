@@ -6,14 +6,18 @@ from .utils import get_inbox
 
 @api_view(['POST'])
 def send_email(request):
+    sender = request.data.get('sender')
     to = request.data.get('to')
     subject = request.data.get('subject')
     body = request.data.get('body')
 
+    if not sender or not to:
+        return Response({"error": "sender and to required"}, status=400)
+
     send_mail(
         subject,
         body,
-        "user1@lan.local",  # Remitente
+        f"{sender}@lan.local",  # Remitente dinámico
         [to],
         fail_silently=False,
     )
@@ -22,6 +26,8 @@ def send_email(request):
 
 @api_view(['GET'])
 def read_emails(request, username):
+    print(f"Reading emails for {username}")
+    print(f"Query params: {request.query_params}")
     password = request.query_params.get('password')
     if not password:
         return Response({"error": "Password required"}, status=400)
