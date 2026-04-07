@@ -22,7 +22,6 @@ const mockEmails = [
 
 export const Dashboard = () => {
     return (
-        // Conservamos la clase main-content
         <main className="main-content">
             <header className="top-header">
                 <input type="text" placeholder="escribe un mensaje..." className="search-bar"/>

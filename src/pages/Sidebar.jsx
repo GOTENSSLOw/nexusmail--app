@@ -17,9 +17,10 @@ export const Sidebar = () => {
                 <Link to="/inbox" className={location.pathname === '/inbox' ? 'active' : ''}>
                     <FiInbox /> Bandeja de entrada <span className="badge">{correosSinLeer}</span>
                 </Link>
-                <a href="/recibidos"><FiInbox /> Recibidos <span className="badge"> 5</span></a>
                 
-                <a href="/enviados"><FiEdit /> Enviados</a>
+                <Link to="/sent" className={location.pathname === '/sent' ? 'active' : ''}>
+                    <FiEdit /> Enviados
+                </Link>
                 
                 <Link to="/settings" className={location.pathname === '/settings' ? 'active' : ''}>
                     <FiSettings /> Configuración de cuenta
