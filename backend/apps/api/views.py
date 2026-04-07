@@ -26,8 +26,6 @@ def send_email(request):
 
 @api_view(['GET'])
 def read_emails(request, username):
-    print(f"Reading emails for {username}")
-    print(f"Query params: {request.query_params}")
     password = request.query_params.get('password')
     if not password:
         return Response({"error": "Password required"}, status=400)

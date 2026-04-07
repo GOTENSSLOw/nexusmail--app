@@ -50,27 +50,29 @@ dovecot-test:
 django-test-send:
 	curl -X POST http://127.0.0.1:8000/api/send-email/ \
 		-H "Content-Type: application/json" \
-		-d '{"sender": "joao", "to":"uwu@lan.local","subject":"Hola","body":"Prueba"}'
+		-d '{"sender": "joao", "to":"uwu@lan.local","subject":"Hola","body":"Prueba"}' | jq 
 
 django-test-read:
 	curl -s -X GET "http://127.0.0.1:$(PORT)/api/read-emails/uwu/?password=uwu12345" \
-		-H "Content-Type: application/json"
+		-H "Content-Type: application/json" | jq 
 
 create-user:
-	@read -p "Nombre de usuario: " USER; \
-	PASS=$${USER}12345; \
-	sudo useradd -m $$USER; \
-	echo "$$USER:$$PASS" | sudo chpasswd; \
-	sudo -u $$USER doveadm mailbox create -u $$USER INBOX; \
-	sudo -u $$USER doveadm mailbox create -u $$USER Sent; \
-	sudo -u $$USER doveadm mailbox create -u $$USER Trash; \
-	sudo -u $$USER mkdir -p /home/$$USER/Maildir/{cur,new,tmp}; \
-	# Aplicar ACL recursiva a todo el Maildir para que Django pueda leer
-	sudo setfacl -R -m u:$(DJANGO_USER):rx /home/$$USER/Maildir; \
-	sudo setfacl -R -m u:$(DJANGO_USER):r /home/$$USER/Maildir/cur; \
-	sudo setfacl -R -m u:$(DJANGO_USER):r /home/$$USER/Maildir/new; \
-	sudo setfacl -R -m u:$(DJANGO_USER):r /home/$$USER/Maildir/tmp; \
-	echo "Usuario $$USER creado con Maildir listo y contraseña $$PASS para $(DJANGO_USER)"
+	@read -p "Nombre de usuario: " USR; \
+	PASS=$${USR}12345; \
+	sudo useradd -m -s /bin/bash $$USR; \
+	echo "$$USR:$$PASS" | sudo chpasswd; \
+	sudo mkdir -p /home/$$USR/Maildir/{cur,new,tmp}; \
+	sudo chown -R $$USR:$$USR /home/$$USR/Maildir; \
+	sudo chmod -R 700 /home/$$USR/Maildir; \
+	# ACLs: rx para entrar a carpetas y r para leer archivos \
+	sudo setfacl -R -m u:$(DJANGO_USER):rx /home/$$USR/Maildir; \
+	# Establecer ACL por defecto para futuros correos \
+	sudo setfacl -R -d -m u:$(DJANGO_USER):r /home/$$USR/Maildir; \
+	echo "------------------------------------------------"; \
+	echo "Usuario: $$USR"; \
+	echo "Password: $$PASS"; \
+	echo "Maildir configurado para $(DJANGO_USER)"; \
+	echo "------------------------------------------------"
 
 # Eliminar usuario de prueba
 delete-user:
