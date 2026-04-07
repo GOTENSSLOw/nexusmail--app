@@ -23,9 +23,14 @@ protocols {
   pop3 = yes
 }
 
-mail_home = /home/%{user}
+# Cambia de ~/mail a ~/Maildir
+mail_path = ~/Maildir
+
+# Asegúrate de que el driver sea correcto
 mail_driver = maildir
-mail_path = ~/mail
+
+# Para que Dovecot no se queje de permisos al ser root/user
+mail_privileged_group = mail
 # By default first_valid_uid is 1000. If your vmail user's UID is smaller,
 # you need to modify this:
 first_valid_uid = 1000
@@ -45,6 +50,7 @@ userdb passwd {
 ssl = no
 
 !include_try conf.d/*.conf
+
 
 ```
 
