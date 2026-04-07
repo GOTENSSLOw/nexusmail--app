@@ -35,6 +35,9 @@ export const Dashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     return (
+        <main className="main-content">
+            <header className="top-header">
+                <input type="text" placeholder="escribe un mensaje..." className="search-bar"/>
         // 1. Recuperamos el contenedor principal para que las columnas se acomoden
         <div className="dashboard-container">    
             

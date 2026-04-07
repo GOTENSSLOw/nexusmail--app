@@ -22,9 +22,10 @@ export const Sidebar = ({ abrirModal, cantidadCorreos }) => {
                     {/* 3. MOSTRAMOS EL NÚMERO REAL DE CORREOS SIN LEER */}
                     <FiInbox /> Bandeja de entrada <span className="badge">{cantidadCorreos}</span>
                 </Link>
-                <a href="/recibidos"><FiInbox /> Recibidos <span className="badge"> 5</span></a>
                 
-                <a href="/enviados"><FiEdit /> Enviados</a>
+                <Link to="/sent" className={location.pathname === '/sent' ? 'active' : ''}>
+                    <FiEdit /> Enviados
+                </Link>
                 
                 <Link to="/settings" className={location.pathname === '/settings' ? 'active' : ''}>
                     <FiSettings /> Configuración de cuenta
