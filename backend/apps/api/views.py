@@ -53,6 +53,8 @@ def send_email(request):
     if not to or not subject:
         return Response({"error": "Recipient and subject required"}, status=400)
     
+    if user_obj.username == to.split('@')[0]:  # Evitar que te envíes correos a ti mismo
+        return Response({"error": "Cannot send email to yourself"}, status=400)
     # 1. Enviar vía SMTP (Postfix)
     try:
         send_mail(

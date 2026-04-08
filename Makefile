@@ -70,3 +70,5 @@ delete-user:
 	@read -p "Nombre de usuario: " USER; \
 	sudo userdel -r $$USER
 
+get-users:
+	ls /home
