@@ -31,20 +31,11 @@ restart:
 	@echo "Servicios Postfix y Dovecot reiniciados"
 
 # Ver estado de servicios
-status:
+postfix-status:
 	sudo systemctl status postfix
+
+dovecot-status:
 	sudo systemctl status dovecot
-
-# Probar envío de correo vía Postfix
-postfix-test:
-	echo "Mensaje de prueba" | mail -s "Test Postfix" user2@lan.local
-
-# Probar conexión a Dovecot (IMAP)
-dovecot-test:
-	telnet 127.0.0.1 143
-	@echo "Conecta con: a login user2 tu_contraseña"
-	@echo "Luego: a select INBOX"
-	@echo "Finalmente: a logout"
 
 # Probar endpoints Django API
 django-test-send:
