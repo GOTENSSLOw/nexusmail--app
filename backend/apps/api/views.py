@@ -111,3 +111,14 @@ def read_emails(request, username):
         return Response({"error": "User not found"}, status=404)
     except Exception as e:
         return Response({"error": f"Error: {str(e)}"}, status=500)
+    
+
+@api_view(['PATCH'])
+def mark_as_read(request, email_id):
+    try:
+        email_obj = EmailMessage.objects.get(id=email_id, user=request.user)
+        email_obj.unread = False
+        email_obj.save()
+        return Response({"status": "read"})
+    except EmailMessage.DoesNotExist:
+        return Response({"status": "error"}, status=404)
