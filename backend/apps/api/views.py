@@ -96,30 +96,28 @@ def login_view(request):
         return Response({"message": "Logged in and profile updated"})
     return Response({"error": "Invalid credentials"}, status=401)
 
-# --- LEER CORREOS (Ahora mucho más simple) ---
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def read_emails_me(request):
     user_obj = request.user
+    my_email_address = f"{user_obj.username}@lan.local" # Tu dirección oficial
     
     try:
-        # 1. Intentamos sacar la clave del perfil guardado
-        try:
-            profile = UserProfile.objects.get(user=user_obj)
-            imap_pass = profile.imap_password
-        except UserProfile.DoesNotExist:
-            imap_pass = None
-
-        # 2. Sincronizar solo si tenemos la clave
-        if imap_pass:
-            sync_emails_with_db(user_obj, imap_pass)
+        profile = UserProfile.objects.filter(user=user_obj).first()
+        if profile and profile.imap_password:
+            sync_emails_with_db(user_obj, profile.imap_password)
         
-        # 3. Obtener correos (Solo los del usuario)
-        emails = EmailMessage.objects.filter(user=user_obj).order_by('-time')
+        # CORRECCIÓN: Filtrar donde el destinatario soy yo
+        # O excluir donde el remitente soy yo (depende de cómo prefieras)
+        emails = EmailMessage.objects.filter(
+            user=user_obj, 
+            recipient=my_email_address
+        ).order_by('-time')
         
         payload = [{
             "id": e.id,
             "recipient": e.recipient,
+            "sender": e.sender, # ¡Añade esto para saber quién te escribió!
             "subject": e.subject,
             "snippet": e.snippet,
             "body": e.body,
@@ -130,7 +128,33 @@ def read_emails_me(request):
         return Response(payload)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def read_emails_sent(request):
+    user_obj = request.user
+    my_email_address = f"{user_obj.username}@lan.local"
     
+    # CORRECCIÓN: Filtrar donde el remitente soy yo
+    emails = EmailMessage.objects.filter(
+        user=user_obj, 
+        sender=my_email_address
+    ).order_by('-time')
+    
+    payload = [{
+        "id": e.id,
+        "sender": e.sender, # Aquí ves quién te lo mandó (aunque en sent siempre serás tú)
+        "recipient": e.recipient, # Aquí ves a quién se lo mandaste
+        "subject": e.subject,
+        "snippet": e.snippet,
+        "body": e.body,
+        "time": e.time.strftime("%Y-%m-%d %H:%M:%S"),
+        "unread": False 
+    } for e in emails]
+
+    return Response(payload)
+
+
 # --- MARCAR COMO LEÍDO ---
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])

@@ -36,6 +36,9 @@ urlpatterns = [
     
     # Inbox: El endpoint /me/ es ideal para la TUI porque no necesita pasar el nombre en la URL
     path('read-emails/me/', views.read_emails_me, name='read_emails_me'),
+
+    # Sent: Para diferenciarlo del inbox, lo dejamos con el username explícito
+    path('read-emails/sent/', views.read_emails_sent), 
     
     # Mantén esta por si necesitas consultar el de alguien más (si eres admin)
     path('read-emails/<str:username>/', views.read_emails_me, name='read_emails'),
