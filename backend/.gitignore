@@ -1,13 +1,16 @@
-# Entornos virtuales
-venv/
-ENV/
-env/
 
 # Python cache
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Entornos virtuales
+venv/
+ENV/
+env/
+
+
 
 # Base de datos
 db.sqlite3

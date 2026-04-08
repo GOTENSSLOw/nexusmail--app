@@ -1,3 +1,4 @@
+from email.message import EmailMessage
 import imaplib
 import email
 from typing import List, Dict
@@ -102,3 +103,25 @@ def create_system_user(username, password):
     except subprocess.CalledProcessError as e:
         print(f"Error ejecutando comando: {e}")
         return False
+    
+
+def sync_emails_with_db(user_obj, password):
+    # 1. Obtener correos crudos desde utils.py (IMAP)
+    raw_emails = get_inbox(user_obj.username, password)
+    
+    for mail_data in raw_emails:
+        # Usamos el Message-ID o una combinación de campos como identificador único
+        # para evitar duplicados en cada polling.
+        identifier = f"{mail_data['subject']}-{mail_data['date']}" 
+        
+        EmailMessage.objects.get_or_create(
+            user=user_obj,
+            message_id_hash=identifier, # Campo nuevo para control
+            defaults={
+                'sender': mail_data['from'],
+                'recipient': f"{user_obj.username}@lan.local",
+                'subject': mail_data['subject'],
+                'body': mail_data['body'],
+                'unread': True, # Por defecto al ser nuevos
+            }
+        )

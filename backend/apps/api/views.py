@@ -1,9 +1,13 @@
-# Create your views here.
-from django.core.mail import send_mail
+from django.core.mail import send_mail # Quitamos EmailMessage de aquí
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .utils import create_system_user, get_inbox, is_valid_username, sanitize_username
 from django.contrib.auth.models import User
+# Importa tu modelo (asumiendo que está en models.py)
+from .models import EmailMessage 
+
+from .services.system_service import create_system_user
+from .services.email_service import get_inbox_from_imap, sync_emails_with_db
+from .validators import sanitize_username, is_valid_username
 
 @api_view(['POST'])
 def send_email(request):
@@ -15,15 +19,34 @@ def send_email(request):
     if not sender or not to:
         return Response({"error": "sender and to required"}, status=400)
 
+    # 1. Enviar correo real
     send_mail(
         subject,
         body,
-        f"{sender}@lan.local",  # Remitente dinámico
+        f"{sender}@lan.local",
         [to],
         fail_silently=False,
     )
-    return Response({"status": "email sent"})
 
+    # 2. Guardar en DB para el Frontend
+    # OJO: Si no usas autenticación JWT/Session, request.user puede ser AnonymousUser.
+    # Si es el caso, búscalo por el 'sender'.
+    try:
+        user_obj = User.objects.get(username=sender)
+        email_obj = EmailMessage.objects.create(
+            user=user_obj,
+            recipient=to,
+            sender=f"{sender}@lan.local",
+            subject=subject,
+            body=body,
+            unread=False
+        )
+        return Response({
+            "status": "email sent",
+            "id": email_obj.id
+        })
+    except User.DoesNotExist:
+        return Response({"error": "Sender user not found in DB"}, status=404)
 
 @api_view(['POST'])
 def register_user(request):
@@ -33,24 +56,18 @@ def register_user(request):
     if not raw_username or not password:
         return Response({"error": "Username and password are required"}, status=400)
 
-    # 1. Validar y Sanitizar
     username = sanitize_username(raw_username)
     if not is_valid_username(username):
         return Response({"error": "Invalid username format"}, status=400)
 
     try:
-        # 2. Crear en base de datos Django (para persistencia interna)
         if User.objects.filter(username=username).exists():
             return Response({"error": "User already exists"}, status=400)
         
         User.objects.create_user(username=username, password=password)
-
-        # 3. Crear en el Sistema (Postfix/Dovecot/Linux)
-        # Usamos tu función de utils.py
         success = create_system_user(username, password)
         
         if not success:
-            # Si falla el sistema, borramos de Django para no quedar inconsistentes
             User.objects.filter(username=username).delete()
             return Response({"error": "System configuration failed"}, status=500)
 
@@ -65,17 +82,32 @@ def register_user(request):
 @api_view(['GET'])
 def read_emails(request, username):
     password = request.query_params.get('password')
-    
     if not password:
         return Response({"error": "Password required"}, status=400)
 
-    # Sanitizamos el username del path por seguridad
     safe_user = sanitize_username(username)
-
+    
     try:
-        # Usamos tu función get_inbox de utils.py
-        emails = get_inbox(safe_user, password)
-        return Response(emails)
+        user_obj = User.objects.get(username=safe_user)
+        
+        # Sincronizamos (Polling)
+        sync_emails_with_db(user_obj, password)
+        
+        # Consultamos DB enriquecida
+        emails = EmailMessage.objects.filter(user=user_obj).order_by('-time')
+        
+        payload = [{
+            "id": e.id,
+            "recipient": e.recipient,
+            "subject": e.subject,
+            "snippet": e.snippet, # Asegúrate de que el modelo genere esto en el save()
+            "time": e.time.strftime("%Y-%m-%d %H:%M:%S"),
+            "unread": e.unread
+        } for e in emails]
+
+        return Response(payload)
+
+    except User.DoesNotExist:
+        return Response({"error": "User not found"}, status=404)
     except Exception as e:
-        # Esto atrapará errores de login de imaplib si la contraseña está mal
-        return Response({"error": f"IMAP Error: {str(e)}"}, status=500)
+        return Response({"error": f"Error: {str(e)}"}, status=500)
