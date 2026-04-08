@@ -35,16 +35,16 @@ def get_inbox_from_imap(user: str, password: str) -> list:
     return messages
 
 def sync_emails_with_db(user_obj, password):
-    """Orquestador: Trae de IMAP y guarda en Django."""
     raw_emails = get_inbox_from_imap(user_obj.username, password)
     
     for mail in raw_emails:
-        # Usamos el subject + date como identificador único si no tienes UID estable
-        identifier = f"{mail['subject']}-{mail['date']}"
+        # INCLUYE EL USERNAME PARA HACERLO ÚNICO POR USUARIO
+        identifier = f"{user_obj.username}-{mail['subject']}-{mail['date']}"
         
+        # O mejor aún, filtra por user Y message_id_hash en el get_or_create
         EmailMessage.objects.get_or_create(
             message_id_hash=identifier,
-            user=user_obj,
+            user=user_obj, # <--- Ahora es único para este usuario
             defaults={
                 'sender': mail['from'],
                 'recipient': f"{user_obj.username}@lan.local",

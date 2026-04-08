@@ -18,3 +18,8 @@ class EmailMessage(models.Model):
         if not self.snippet and self.body:
             self.snippet = self.body[:75] + "..."
         super().save(*args, **kwargs)
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # Texto plano, sin miedo al éxito para la demo
+    imap_password = models.CharField(max_length=128, blank=True)

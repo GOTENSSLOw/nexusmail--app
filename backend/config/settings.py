@@ -130,7 +130,10 @@ EMAIL_HOST_PASSWORD = ""          # Opcional: si usas auth
 DEFAULT_FROM_EMAIL = "noreply@lan.local"
 
 REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
+    'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ]
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
 }

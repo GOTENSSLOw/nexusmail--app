@@ -76,17 +76,45 @@ def send_email(request):
     except Exception as e:
         return Response({"error": f"Mail system error: {str(e)}"}, status=500)
 
-# --- LEER CORREOS (Endpoint para la TUI /me/) ---
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login_view(request):
+    # Nota: Si usas el endpoint por defecto de SimpleJWT, tendrías que 
+    # crear una subclase de TokenObtainPairView para hacer esto.
+    from django.contrib.auth import authenticate
+    username = request.data.get('username')
+    password = request.data.get('password')
+    
+    user = authenticate(username=username, password=password)
+    if user:
+        # GUARDAR CLAVE EN EL PERFIL PARA LA DEMO
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        profile.imap_password = password
+        profile.save()
+        
+        # ... devolver token normalmente ...
+        return Response({"message": "Logged in and profile updated"})
+    return Response({"error": "Invalid credentials"}, status=401)
+
+# --- LEER CORREOS (Ahora mucho más simple) ---
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def read_emails_me(request):
     user_obj = request.user
-    password = request.query_params.get('password') 
     
     try:
-        if password:
-            sync_emails_with_db(user_obj, password)
+        # 1. Intentamos sacar la clave del perfil guardado
+        try:
+            profile = UserProfile.objects.get(user=user_obj)
+            imap_pass = profile.imap_password
+        except UserProfile.DoesNotExist:
+            imap_pass = None
+
+        # 2. Sincronizar solo si tenemos la clave
+        if imap_pass:
+            sync_emails_with_db(user_obj, imap_pass)
         
+        # 3. Obtener correos (Solo los del usuario)
         emails = EmailMessage.objects.filter(user=user_obj).order_by('-time')
         
         payload = [{
@@ -94,6 +122,7 @@ def read_emails_me(request):
             "recipient": e.recipient,
             "subject": e.subject,
             "snippet": e.snippet,
+            "body": e.body,
             "time": e.time.strftime("%Y-%m-%d %H:%M:%S"),
             "unread": e.unread
         } for e in emails]
@@ -101,7 +130,7 @@ def read_emails_me(request):
         return Response(payload)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
-
+    
 # --- MARCAR COMO LEÍDO ---
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
