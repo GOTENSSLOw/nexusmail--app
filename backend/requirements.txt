@@ -54,6 +54,7 @@ django-stubs==6.0.1
 django-stubs-ext==6.0.1
 djangorestframework==3.17.1
 djangorestframework-stubs==3.16.9
+djangorestframework_simplejwt==5.5.1
 dnf==4.24.0
 docutils==0.22.4
 et_xmlfile==2.0.0
@@ -160,6 +161,7 @@ pyenchant==3.2.2
 Pygments==2.19.2
 PyGObject==3.54.5
 pyinotify==0.9.6
+PyJWT==2.12.1
 pykickstart @ file:///builddir/build/BUILD/pykickstart-3.66-build/pykickstart-3.66
 pyparsing==3.3.1
 pyparted==3.13.0
