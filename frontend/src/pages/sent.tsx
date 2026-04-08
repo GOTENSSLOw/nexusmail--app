@@ -1,19 +1,12 @@
 import { useState } from 'react';
+import { EmailList } from './EmailList'; 
+import { EmailType } from './Dashboard';
 import './Dashboard.css';
 
-interface SentEmail {
-  id: number;
-  recipient: string;
-  subject: string;
-  snippet: string;
-  time: string;
-  unread: boolean;
-}
-
-const mockSentEmails: SentEmail[] = [
+const mockSentEmails: EmailType[] = [
   { 
     id: 1, 
-    recipient: "Para: Stripe Support", 
+    sender: "Para: Stripe Support", 
     subject: "Re: Action required: Verify your email address", 
     snippet: "Hola, ya envié los documentos solicitados para verificar mi cuenta. Saludos, Rossman.", 
     time: "11:15 AM", 
@@ -21,7 +14,7 @@ const mockSentEmails: SentEmail[] = [
   },
   { 
     id: 2, 
-    recipient: "Para: Equipo Debita", 
+    sender: "Para: Equipo Debita", 
     subject: "Avance del frontend en React", 
     snippet: "Les adjunto mi parte del código. Avisen cuando el backend en Rust esté listo para conectarlo. Atte: Rossman.", 
     time: "Ayer", 
@@ -29,7 +22,7 @@ const mockSentEmails: SentEmail[] = [
   },
   { 
     id: 3, 
-    recipient: "Para: Linear Team", 
+    sender: "Para: Linear Team", 
     subject: "Feedback on new features", 
     snippet: "La nueva actualización de Cycles está excelente. ¿Tienen planeado añadir más integraciones pronto? - Rossman", 
     time: "Mar 12", 
@@ -43,7 +36,7 @@ export const Sent = () => {
     const correosFiltrados = mockSentEmails.filter((correo) => 
         correo.subject.toLowerCase().includes(busqueda.toLowerCase()) ||
         correo.snippet.toLowerCase().includes(busqueda.toLowerCase()) ||
-        correo.recipient.toLowerCase().includes(busqueda.toLowerCase())
+        correo.sender.toLowerCase().includes(busqueda.toLowerCase())
     );
 
     return (
@@ -58,24 +51,8 @@ export const Sent = () => {
                 />
             </header>
 
-            <div className="email-list">
-                {correosFiltrados.map((email) => (
-                    <div key={email.id} className="email-row">
-                        <div className="email-sender">{email.recipient}</div>
-                        <div className="email-content">
-                            <span className="email-subject"> {email.subject} </span>
-                            <span className="email-snippet"> - {email.snippet} </span>
-                        </div>
-                        <div className="email-time">{email.time}</div>
-                    </div>
-                ))}
-                
-                {correosFiltrados.length === 0 && (
-                    <div className="email-row" style={{ justifyContent: 'center', color: '#666' }}>
-                        No se encontraron correos que coincidan con tu búsqueda.
-                    </div>
-                )}
-            </div>
+            <EmailList emails={correosFiltrados} />
+            
         </main>
     );
 };
