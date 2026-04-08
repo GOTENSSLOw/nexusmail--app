@@ -55,6 +55,7 @@ create-user:
 	sudo mkdir -p /home/$$USR/Maildir/{cur,new,tmp}; \
 	sudo chown -R $$USR:$$USR /home/$$USR/Maildir; \
 	sudo chmod -R 700 /home/$$USR/Maildir; \
+	sudo setfacl -m u:$(DJANGO_USER):x /home/$$USR; \
 	# ACLs: rx para entrar a carpetas y r para leer archivos \
 	sudo setfacl -R -m u:$(DJANGO_USER):rx /home/$$USR/Maildir; \
 	# Establecer ACL por defecto para futuros correos \
