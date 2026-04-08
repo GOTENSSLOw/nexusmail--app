@@ -5,7 +5,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
-from .models import EmailMessage 
+from .models import EmailMessage, UserProfile 
 from .services.system_service import create_system_user
 from .services.email_service import sync_emails_with_db
 from .validators import sanitize_username, is_valid_username
