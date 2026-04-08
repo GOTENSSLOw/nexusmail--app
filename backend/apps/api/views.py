@@ -18,7 +18,10 @@ def send_email(request):
 
     if not sender or not to:
         return Response({"error": "sender and to required"}, status=400)
-
+    
+    if request.data.get('sender') != request.user.username:
+        return Response({"error": "Sender must match authenticated user"}, status=403)
+    
     # 1. Enviar correo real
     send_mail(
         subject,

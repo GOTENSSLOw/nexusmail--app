@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-l-$+9u8yt1vz$zbd9nbk)zwe_sj$#e)4n57p=98k0k-^h=xgdu'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ["*"]
 
@@ -126,4 +126,4 @@ EMAIL_PORT = 25                   # Puerto SMTP
 EMAIL_USE_TLS = False             # LAN sin SSL
 EMAIL_HOST_USER = ""              # Opcional: usuarios locales
 EMAIL_HOST_PASSWORD = ""          # Opcional: si usas auth
-DEFAULT_FROM_EMAIL = "user1@lan.local"
+DEFAULT_FROM_EMAIL = "noreply@lan.local"
