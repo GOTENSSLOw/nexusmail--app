@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
     'apps.api',
 ]
 
@@ -127,3 +128,9 @@ EMAIL_USE_TLS = False             # LAN sin SSL
 EMAIL_HOST_USER = ""              # Opcional: usuarios locales
 EMAIL_HOST_PASSWORD = ""          # Opcional: si usas auth
 DEFAULT_FROM_EMAIL = "noreply@lan.local"
+
+REST_FRAMEWORK = {
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ]
+}

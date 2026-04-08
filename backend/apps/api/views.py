@@ -1,57 +1,18 @@
-from django.core.mail import send_mail # Quitamos EmailMessage de aquí
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
+from django.core.mail import send_mail
 from django.contrib.auth.models import User
-# Importa tu modelo (asumiendo que está en models.py)
-from .models import EmailMessage 
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
 
+from .models import EmailMessage 
 from .services.system_service import create_system_user
-from .services.email_service import get_inbox_from_imap, sync_emails_with_db
+from .services.email_service import sync_emails_with_db
 from .validators import sanitize_username, is_valid_username
 
+# --- REGISTRO (Público) ---
 @api_view(['POST'])
-def send_email(request):
-    sender = request.data.get('sender')
-    to = request.data.get('to')
-    subject = request.data.get('subject')
-    body = request.data.get('body')
-
-    if not sender or not to:
-        return Response({"error": "sender and to required"}, status=400)
-    
-    if request.data.get('sender') != request.user.username:
-        return Response({"error": "Sender must match authenticated user"}, status=403)
-    
-    # 1. Enviar correo real
-    send_mail(
-        subject,
-        body,
-        f"{sender}@lan.local",
-        [to],
-        fail_silently=False,
-    )
-
-    # 2. Guardar en DB para el Frontend
-    # OJO: Si no usas autenticación JWT/Session, request.user puede ser AnonymousUser.
-    # Si es el caso, búscalo por el 'sender'.
-    try:
-        user_obj = User.objects.get(username=sender)
-        email_obj = EmailMessage.objects.create(
-            user=user_obj,
-            recipient=to,
-            sender=f"{sender}@lan.local",
-            subject=subject,
-            body=body,
-            unread=False
-        )
-        return Response({
-            "status": "email sent",
-            "id": email_obj.id
-        })
-    except User.DoesNotExist:
-        return Response({"error": "Sender user not found in DB"}, status=404)
-
-@api_view(['POST'])
+@permission_classes([AllowAny])
 def register_user(request):
     raw_username = request.data.get('username')
     password = request.data.get('password')
@@ -74,54 +35,82 @@ def register_user(request):
             User.objects.filter(username=username).delete()
             return Response({"error": "System configuration failed"}, status=500)
 
-        return Response({
-            "message": "User registered successfully",
-            "username": username
-        }, status=201)
-
+        return Response({"message": "User registered successfully", "username": username}, status=201)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
-@api_view(['GET'])
-def read_emails(request, username):
-    password = request.query_params.get('password')
-    if not password:
-        return Response({"error": "Password required"}, status=400)
 
-    safe_user = sanitize_username(username)
+# --- ENVIAR CORREO (Requiere Token) ---
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def send_email(request):
+    # Sacamos la identidad del TOKEN, no del body
+    user_obj = request.user 
+    to = request.data.get('to')
+    subject = request.data.get('subject')
+    body = request.data.get('body')
+
+    if not to or not subject:
+        return Response({"error": "Recipient and subject required"}, status=400)
+    
+    # 1. Enviar vía SMTP (Postfix)
+    try:
+        send_mail(
+            subject,
+            body,
+            f"{user_obj.username}@lan.local",
+            [to],
+            fail_silently=False,
+        )
+
+        # 2. Guardar en DB para historial
+        email_obj = EmailMessage.objects.create(
+            user=user_obj,
+            recipient=to,
+            sender=f"{user_obj.username}@lan.local",
+            subject=subject,
+            body=body,
+            unread=False
+        )
+        return Response({"status": "email sent", "id": email_obj.id})
+    except Exception as e:
+        return Response({"error": f"Mail system error: {str(e)}"}, status=500)
+
+# --- LEER CORREOS (Endpoint para la TUI /me/) ---
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def read_emails_me(request):
+    user_obj = request.user
+    password = request.query_params.get('password') 
     
     try:
-        user_obj = User.objects.get(username=safe_user)
+        if password:
+            sync_emails_with_db(user_obj, password)
         
-        # Sincronizamos (Polling)
-        sync_emails_with_db(user_obj, password)
-        
-        # Consultamos DB enriquecida
         emails = EmailMessage.objects.filter(user=user_obj).order_by('-time')
         
         payload = [{
             "id": e.id,
             "recipient": e.recipient,
             "subject": e.subject,
-            "snippet": e.snippet, # Asegúrate de que el modelo genere esto en el save()
+            "snippet": e.snippet,
             "time": e.time.strftime("%Y-%m-%d %H:%M:%S"),
             "unread": e.unread
         } for e in emails]
 
         return Response(payload)
-
-    except User.DoesNotExist:
-        return Response({"error": "User not found"}, status=404)
     except Exception as e:
-        return Response({"error": f"Error: {str(e)}"}, status=500)
-    
+        return Response({"error": str(e)}, status=500)
 
+# --- MARCAR COMO LEÍDO ---
 @api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
 def mark_as_read(request, email_id):
     try:
+        # Solo puedes marcar como leído TUS propios correos
         email_obj = EmailMessage.objects.get(id=email_id, user=request.user)
         email_obj.unread = False
         email_obj.save()
         return Response({"status": "read"})
     except EmailMessage.DoesNotExist:
-        return Response({"status": "error"}, status=404)
+        return Response({"error": "Email not found"}, status=404)
