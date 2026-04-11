@@ -1,81 +1,74 @@
-# Makefile para levantar Postfix, Dovecot y Django API en LAN
+.PHONY: help vm-full-setup vm-full-start vm-full-stop \
+        docker-up docker-down docker-build docker-logs \
+        create-user seed-users migrate clean
 
-# Variables
-DJANGO_DIR := ./backend
-DJANGO_USER := void
-VENV := $(DJANGO_DIR)/venv
-HOST := 0.0.0.0
-PORT := 8000
+# === HELP ===
+help:
+	@echo "NexusMail - Multi-Mode Deployment"
+	@echo ""
+	@echo "VM Full (todo en la VM):"
+	@echo "  make vm-full-setup    Instalar deps y migrar"
+	@echo "  make vm-full-start    Levantar todo (Postfix+Dovecot+Django+Vite)"
+	@echo "  make vm-full-stop     Parar servicios"
+	@echo ""
+	@echo "Docker:"
+	@echo "  make docker-up        docker compose up -d"
+	@echo "  make docker-down      docker compose down"
+	@echo "  make docker-build     docker compose build"
+	@echo "  make docker-logs      docker compose logs -f"
+	@echo ""
+	@echo "Utilidades:"
+	@echo "  make create-user NAME=foo PASS=bar"
+	@echo "  make seed-users       Crear user1/user2/user3"
+	@echo "  make migrate          Ejecutar migraciones"
 
-.PHONY: start stop restart status django-test postfix-test dovecot-test
+# === VM FULL ===
+vm-full-setup:
+	cd backend && python3 -m venv venv && source venv/bin/activate && pip install -r requirements.txt && python manage.py migrate
 
-# ----------------------------------------------------------------------
-# Levantar todos los servicios
-start:
+vm-full-start:
 	sudo systemctl start postfix
 	sudo systemctl start dovecot
-	@echo "Servicios Postfix y Dovecot iniciados"
-	@echo "Iniciando Django API..."
-	source $(VENV)/bin/activate && cd $(DJANGO_DIR) && python manage.py runserver $(HOST):$(PORT)
+	cd frontend && npm run dev &
+	cd backend && source venv/bin/activate && python manage.py runserver 0.0.0.0:8000
 
-# Detener servicios
-stop:
+vm-full-stop:
 	sudo systemctl stop postfix
 	sudo systemctl stop dovecot
-	@echo "Servicios Postfix y Dovecot detenidos"
+	pkill -f "manage.py runserver" 2>/dev/null || true
+	pkill -f "vite" 2>/dev/null || true
 
-# Reiniciar servicios
-restart:
-	sudo systemctl restart postfix
-	sudo systemctl restart dovecot
-	@echo "Servicios Postfix y Dovecot reiniciados"
+# === DOCKER ===
+docker-up:
+	docker compose up -d
 
-# Ver estado de servicios
-status:
-	sudo systemctl status postfix
-	sudo systemctl status dovecot
+docker-down:
+	docker compose down
 
-# Probar envío de correo vía Postfix
-postfix-test:
-	echo "Mensaje de prueba" | mail -s "Test Postfix" user2@lan.local
+docker-build:
+	docker compose build --no-cache
 
-# Probar conexión a Dovecot (IMAP)
-dovecot-test:
-	telnet 127.0.0.1 143
-	@echo "Conecta con: a login user2 tu_contraseña"
-	@echo "Luego: a select INBOX"
-	@echo "Finalmente: a logout"
+docker-logs:
+	docker compose logs -f
 
-# Probar endpoints Django API
-django-test-send:
-	curl -X POST http://127.0.0.1:8000/api/send-email/ \
-		-H "Content-Type: application/json" \
-		-d '{"sender": "joao", "to":"uwu@lan.local","subject":"Hola","body":"Prueba"}' | jq 
-
-django-test-read:
-	curl -s -X GET "http://127.0.0.1:$(PORT)/api/read-emails/uwu/?password=uwu12345" \
-		-H "Content-Type: application/json" | jq 
-
+# === UTILITIES ===
 create-user:
-	@read -p "Nombre de usuario: " USR; \
-	PASS=$${USR}12345; \
-	sudo useradd -m -s /bin/bash $$USR; \
-	echo "$$USR:$$PASS" | sudo chpasswd; \
-	sudo mkdir -p /home/$$USR/Maildir/{cur,new,tmp}; \
-	sudo chown -R $$USR:$$USR /home/$$USR/Maildir; \
-	sudo chmod -R 700 /home/$$USR/Maildir; \
-	# ACLs: rx para entrar a carpetas y r para leer archivos \
-	sudo setfacl -R -m u:$(DJANGO_USER):rx /home/$$USR/Maildir; \
-	# Establecer ACL por defecto para futuros correos \
-	sudo setfacl -R -d -m u:$(DJANGO_USER):r /home/$$USR/Maildir; \
-	echo "------------------------------------------------"; \
-	echo "Usuario: $$USR"; \
-	echo "Password: $$PASS"; \
-	echo "Maildir configurado para $(DJANGO_USER)"; \
-	echo "------------------------------------------------"
+	sudo useradd -m -s /bin/bash $(NAME)
+	echo "$(NAME):$(PASS)" | sudo chpasswd
+	sudo mkdir -p /home/$(NAME)/Maildir/{cur,new,tmp}
+	sudo chown -R $(NAME):$(NAME) /home/$(NAME)/Maildir
+	sudo chmod -R 700 /home/$(NAME)/Maildir
+	@echo "User $(NAME) created with password $(PASS)"
 
-# Eliminar usuario de prueba
-delete-user:
-	@read -p "Nombre de usuario: " USER; \
-	sudo userdel -r $$USER
+seed-users:
+	@for u in user1 user2 user3; do \
+		$(MAKE) create-user NAME=$$u PASS=$${u}12345; \
+	done
 
+migrate:
+	cd backend && source venv/bin/activate && python manage.py migrate
+
+clean:
+	docker compose down -v 2>/dev/null || true
+	cd backend && rm -rf venv db.sqlite3
+	cd frontend && rm -rf node_modules dist
