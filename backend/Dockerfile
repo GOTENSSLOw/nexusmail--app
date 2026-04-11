@@ -8,14 +8,8 @@ ENV PYTHONUNBUFFERED=1
 # Carpeta de trabajo
 WORKDIR /app
 
-# Instalar dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copiar requirements
-COPY requirements.txt .
+# Copiar requirements (usar el archivo limpio de dependencias)
+COPY requirements.windows.txt ./requirements.txt
 
 # Instalar Python deps
 RUN pip install --no-cache-dir -r requirements.txt
