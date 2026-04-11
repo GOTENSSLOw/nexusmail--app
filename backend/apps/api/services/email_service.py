@@ -1,10 +1,13 @@
+import os
 import imaplib
 import email
-from ..models import EmailMessage # Tu modelo de DB
+from ..models import EmailMessage
+
+IMAP_HOST = os.environ.get("IMAP_HOST", "127.0.0.1")
 
 def get_inbox_from_imap(user: str, password: str) -> list:
     """Extrae correos crudos del servidor local."""
-    M = imaplib.IMAP4('127.0.0.1')
+    M = imaplib.IMAP4(IMAP_HOST)
     M.login(user, password)
     M.select("INBOX")
     
