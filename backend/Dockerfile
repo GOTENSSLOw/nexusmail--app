@@ -8,8 +8,8 @@ ENV PYTHONUNBUFFERED=1
 # Carpeta de trabajo
 WORKDIR /app
 
-# Copiar requirements (usar el archivo limpio de dependencias)
-COPY requirements.windows.txt ./requirements.txt
+# Copiar requirements
+COPY requirements.txt .
 
 # Instalar Python deps
 RUN pip install --no-cache-dir -r requirements.txt
