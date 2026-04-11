@@ -1,0 +1,81 @@
+version: "3.8"
+
+services:
+  postfix:
+    image: catatnight/postfix
+    environment:
+      - maildomain=${MAIL_DOMAIN:-lan.local}
+      - smtp_user=user1:user112345
+    volumes:
+      - maildata:/home
+    ports:
+      - "25:25"
+    networks:
+      - nexus
+
+  dovecot:
+    image: dovecot/dovecot
+    volumes:
+      - maildata:/home
+      - ./infra/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
+    ports:
+      - "143:143"
+      - "110:110"
+    depends_on:
+      - init
+    networks:
+      - nexus
+
+  init:
+    build: ./backend
+    command: /app/scripts/init-container.sh
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - USERS=${USERS:-user1,user2,user3}
+      - USER_PASSWORDS=${USER_PASSWORDS:-user112345,user212345,user312345}
+      - MAIL_DOMAIN=${MAIL_DOMAIN:-lan.local}
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-dev-key}
+    volumes:
+      - maildata:/home
+      - ./backend:/app
+    networks:
+      - nexus
+
+  django:
+    build: ./backend
+    command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-dev-key}
+      - DJANGO_DEBUG=${DJANGO_DEBUG:-True}
+      - MAIL_DOMAIN=${MAIL_DOMAIN:-lan.local}
+      - SMTP_HOST=postfix
+      - SMTP_PORT=25
+      - IMAP_HOST=dovecot
+    volumes:
+      - maildata:/home
+      - ./backend:/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - init
+      - postfix
+      - dovecot
+    networks:
+      - nexus
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:80"
+    depends_on:
+      - django
+    networks:
+      - nexus
+
+volumes:
+  maildata:
+
+networks:
+  nexus:
+    driver: bridge
