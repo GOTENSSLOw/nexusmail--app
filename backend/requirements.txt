@@ -1,0 +1,7 @@
+# Core
+Django==6.0.1
+djangorestframework==3.17.1
+django-cors-headers==4.9.0
+
+# Production
+gunicorn==24.1.1
