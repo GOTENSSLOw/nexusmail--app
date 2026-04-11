@@ -1,5 +1,6 @@
 import imaplib
 import email
+from django.conf import settings
 from ..models import EmailMessage # Tu modelo de DB
 
 def get_inbox_from_imap(user: str, password: str) -> list:
@@ -47,7 +48,7 @@ def sync_emails_with_db(user_obj, password):
             user=user_obj,
             defaults={
                 'sender': mail['from'],
-                'recipient': f"{user_obj.username}@lan.local",
+                'recipient': f"{user_obj.username}@{settings.MAIL_DOMAIN}",
                 'subject': mail['subject'],
                 'body': mail['body'],
                 'unread': True

@@ -2,6 +2,7 @@ from django.core.mail import send_mail # Quitamos EmailMessage de aquí
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.models import User
+from django.conf import settings
 # Importa tu modelo (asumiendo que está en models.py)
 from .models import EmailMessage 
 
@@ -23,7 +24,7 @@ def send_email(request):
     send_mail(
         subject,
         body,
-        f"{sender}@lan.local",
+        f"{sender}@{settings.MAIL_DOMAIN}",
         [to],
         fail_silently=False,
     )
@@ -36,7 +37,7 @@ def send_email(request):
         email_obj = EmailMessage.objects.create(
             user=user_obj,
             recipient=to,
-            sender=f"{sender}@lan.local",
+            sender=f"{sender}@{settings.MAIL_DOMAIN}",
             subject=subject,
             body=body,
             unread=False
