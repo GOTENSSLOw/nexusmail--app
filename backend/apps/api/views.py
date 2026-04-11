@@ -1,9 +1,11 @@
-from django.core.mail import send_mail # Quitamos EmailMessage de aquí
+import hashlib
+from datetime import datetime
+
+from django.core.mail import send_mail
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-# Importa tu modelo (asumiendo que está en models.py)
-from .models import EmailMessage 
+from .models import EmailMessage
 
 from .services.system_service import create_system_user
 from .services.email_service import get_inbox_from_imap, sync_emails_with_db
@@ -35,6 +37,7 @@ def send_email(request):
         user_obj = User.objects.get(username=sender)
         email_obj = EmailMessage.objects.create(
             user=user_obj,
+            message_id_hash=hashlib.sha256(f"{sender}-{to}-{subject}-{datetime.now().isoformat()}".encode()).hexdigest()[:64],
             recipient=to,
             sender=f"{sender}@lan.local",
             subject=subject,
