@@ -18,6 +18,7 @@ services:
     volumes:
       - maildata:/home
       - ./infra/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
+      - userdb:/etc/userdb:ro
     ports:
       - "143:143"
       - "110:110"
@@ -35,15 +36,18 @@ services:
       - USER_PASSWORDS=${USER_PASSWORDS:-user112345,user212345,user312345}
       - MAIL_DOMAIN=${MAIL_DOMAIN:-lan.local}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-dev-key}
+      - DOCKER_CONTAINER=true
     volumes:
       - maildata:/home
       - ./backend:/app
+      - ./scripts:/app/scripts:ro
+      - userdb:/etc/userdb
     networks:
       - nexus
 
   django:
     build: ./backend
-    command: python manage.py runserver 0.0.0.0:8000
+    command: gunicorn config.wsgi:application --bind 0.0.0.0:8000
     environment:
       - DJANGO_SETTINGS_MODULE=config.settings
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY:-django-insecure-dev-key}
@@ -75,6 +79,7 @@ services:
 
 volumes:
   maildata:
+  userdb:
 
 networks:
   nexus:

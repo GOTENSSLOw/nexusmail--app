@@ -29,7 +29,7 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 # Mail domain
 MAIL_DOMAIN = os.environ.get("MAIL_DOMAIN", "lan.local")
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 
 
 # Application definition
@@ -131,3 +131,5 @@ EMAIL_USE_TLS = False
 EMAIL_HOST_USER = os.environ.get("SMTP_USER", "")
 EMAIL_HOST_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "user1@lan.local")
+
+CORS_ALLOW_ALL_ORIGINS = True
