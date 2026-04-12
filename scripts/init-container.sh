@@ -34,4 +34,13 @@ for i in "${!USERS_ARR[@]}"; do
     echo "Created user: $user"
 done
 
+# Generate Dovecot-compatible passwd file to shared volume
+mkdir -p /etc/userdb
+USERS_COMMA="${USERS:-user1,user2,user3}"
+USER_PATTERN=$(echo "$USERS_COMMA" | tr ',' '|')
+grep -E "^($USER_PATTERN):" /etc/passwd > /etc/userdb/passwd
+grep -E "^($USER_PATTERN):" /etc/shadow > /etc/userdb/shadow
+chmod 600 /etc/userdb/shadow
+echo "Generated /etc/userdb/passwd for Dovecot authentication"
+
 echo "=== Init Container: Done ==="

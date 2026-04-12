@@ -5,7 +5,6 @@ from django.core.mail import send_mail
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.contrib.auth.models import User
-<<<<<<< HEAD
 from django.conf import settings
 from .models import EmailMessage
 
