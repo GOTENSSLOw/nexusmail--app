@@ -1,7 +1,11 @@
 const API_BASE = '/api';
 
 export async function loginUser(username, password) {
-  const res = await fetch(`${API_BASE}/read-emails/${encodeURIComponent(username)}/?password=${encodeURIComponent(password)}`);
+  const res = await fetch(`${API_BASE}/read-emails/${encodeURIComponent(username)}/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
   if (!res.ok) {
     const err = await res.json();
     throw new Error(err.error || 'Login failed');
@@ -10,7 +14,11 @@ export async function loginUser(username, password) {
 }
 
 export async function fetchEmails(username, password) {
-  const res = await fetch(`${API_BASE}/read-emails/${encodeURIComponent(username)}/?password=${encodeURIComponent(password)}`);
+  const res = await fetch(`${API_BASE}/read-emails/${encodeURIComponent(username)}/`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ password }),
+  });
   if (!res.ok) throw new Error('Failed to fetch emails');
   return await res.json();
 }
