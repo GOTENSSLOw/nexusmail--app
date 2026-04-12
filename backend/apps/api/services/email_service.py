@@ -30,6 +30,7 @@ def get_inbox_from_imap(user: str, password: str) -> list:
 
         messages.append({
             "uid": num.decode(),
+            "message_id": msg.get("Message-ID"),
             "from": msg.get("From"),
             "subject": msg.get("Subject"),
             "body": body,
@@ -43,7 +44,11 @@ def sync_emails_with_db(user_obj, password):
     raw_emails = get_inbox_from_imap(user_obj.username, password)
     
     for mail in raw_emails:
-        identifier = f"{mail['subject']}-{mail['date']}"
+        message_id = mail.get('message_id')
+        if message_id:
+            identifier = message_id
+        else:
+            identifier = f"{mail['uid']}-{mail['from']}-{mail['date']}"
         
         EmailMessage.objects.get_or_create(
             message_id_hash=identifier,
