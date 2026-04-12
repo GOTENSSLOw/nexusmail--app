@@ -23,6 +23,11 @@ def send_email(request):
     if not sender or not to:
         return Response({"error": "sender and to required"}, status=400)
 
+    try:
+        user_obj = User.objects.get(username=sender)
+    except User.DoesNotExist:
+        return Response({"error": "Sender user not found in DB"}, status=404)
+
     # 1. Enviar correo real
     send_mail(
         subject,
@@ -33,25 +38,19 @@ def send_email(request):
     )
 
     # 2. Guardar en DB para el Frontend
-    # OJO: Si no usas autenticación JWT/Session, request.user puede ser AnonymousUser.
-    # Si es el caso, búscalo por el 'sender'.
-    try:
-        user_obj = User.objects.get(username=sender)
-        email_obj = EmailMessage.objects.create(
-            user=user_obj,
-            message_id_hash=hashlib.sha256(f"{sender}-{to}-{subject}-{datetime.now().isoformat()}".encode()).hexdigest()[:64],
-            recipient=to,
-            sender=f"{sender}@{settings.MAIL_DOMAIN}",
-            subject=subject,
-            body=body,
-            unread=False
-        )
-        return Response({
-            "status": "email sent",
-            "id": email_obj.id
-        })
-    except User.DoesNotExist:
-        return Response({"error": "Sender user not found in DB"}, status=404)
+    email_obj = EmailMessage.objects.create(
+        user=user_obj,
+        message_id_hash=hashlib.sha256(f"{sender}-{to}-{subject}-{datetime.now().isoformat()}".encode()).hexdigest()[:64],
+        recipient=to,
+        sender=f"{sender}@{settings.MAIL_DOMAIN}",
+        subject=subject,
+        body=body,
+        unread=False
+    )
+    return Response({
+        "status": "email sent",
+        "id": email_obj.id
+    })
 
 @api_view(['POST'])
 def register_user(request):
@@ -84,9 +83,9 @@ def register_user(request):
     except Exception as e:
         return Response({"error": str(e)}, status=500)
 
-@api_view(['GET'])
+@api_view(['POST'])
 def read_emails(request, username):
-    password = request.query_params.get('password')
+    password = request.data.get('password')
     if not password:
         return Response({"error": "Password required"}, status=400)
 
