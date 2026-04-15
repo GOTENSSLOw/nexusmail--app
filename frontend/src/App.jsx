@@ -1,7 +1,7 @@
 import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
-import { Login } from './pages/Login'
-import { Dashboard } from './pages/Dashboard'
-import { AccountSettings } from './pages/accountsettings'
+import { Login } from './pages/Loginpage/Login'
+import { Dashboard } from './pages/Dashboardpage/Dashboard'
+import { AccountSettings } from './pages/AccountSettingspage/accountsettings'
 import { Layout } from './pages/Layout' 
 import { Sent } from './pages/sent'
 

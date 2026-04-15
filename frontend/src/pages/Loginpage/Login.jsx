@@ -1,6 +1,6 @@
 import './Login.css'; 
-import { LoginHero } from './Login/LoginHero';
-import { LoginForm } from './Login/LoginForm';
+import { LoginHero } from './LoginHero';
+import { LoginForm } from './LoginForm';
 
 export const Login = () => {
     return (

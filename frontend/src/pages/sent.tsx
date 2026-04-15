@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { EmailList } from './EmailList'; 
-import { EmailType } from './Dashboard';
-import './Dashboard.css';
+import { EmailList } from './Dashboardpage/EmailList'; 
+import { EmailType } from './Dashboardpage/Dashboard';
+import './Dashboardpage/Dashboard.css';
 
 const mockSentEmails: EmailType[] = [
   { 

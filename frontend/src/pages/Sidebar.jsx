@@ -12,14 +12,12 @@ export const Sidebar = ({ abrirModal, cantidadCorreos }) => {
                 <h1>NexusMail</h1>
             </div>
             
-            {/* 2. CONECTAMOS EL BOTÓN AL CONTROL REMOTO DEL PADRE */}
             <button className="btn-compose" onClick={abrirModal}>
                 <FiEdit /> Compose
             </button>
 
             <nav className="sidebar-menu">
                 <Link to="/inbox" className={location.pathname === '/inbox' ? 'active' : ''}>
-                    {/* 3. MOSTRAMOS EL NÚMERO REAL DE CORREOS SIN LEER */}
                     <FiInbox /> Bandeja de entrada <span className="badge">{cantidadCorreos}</span>
                 </Link>
                 

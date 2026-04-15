@@ -1,9 +1,9 @@
 import "./accountsetting.css";  
-import { ProfileBanner } from "./AccountSettings/ProfileBanner";
-import { ProfileInfo } from "./AccountSettings/ProfileInfo";
-import { ActiveSessions } from "./AccountSettings/ActiveSessions";
-import { SecuritySettings } from "./AccountSettings/SecuritySettings";
-import { PlanCard } from "./AccountSettings/PlanCard";
+import { ProfileBanner } from "./ProfileBanner";
+import { ProfileInfo } from "./ProfileInfo";
+import { ActiveSessions } from "./ActiveSessions";
+import { SecuritySettings } from "./SecuritySettings";
+import { PlanCard } from "./PlanCard";
 
 export const AccountSettings = () => {
     return (
