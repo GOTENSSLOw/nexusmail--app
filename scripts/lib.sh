@@ -285,17 +285,23 @@ check_vm_deps() {
 # check_vm_deps — Checks: python3, node, npm, postfix, dovecot
 
 check_docker_deps() {
-    local missing=()
+    # Check for docker
+    if ! command -v docker &>/dev/null; then
+        error "Missing Docker dependency: docker"
+        error "Please install Docker"
+        return 1
+    fi
     
-    for cmd in docker docker-compose; do
-        if ! command -v "$cmd" &>/dev/null; then
-            missing+=("$cmd")
-        fi
-    done
+    # Check for docker compose (v2 plugin) OR docker-compose (v1 standalone)
+    local has_compose=false
+    if command -v docker &>/dev/null && docker compose version &>/dev/null 2>&1; then
+        has_compose=true
+    elif command -v docker-compose &>/dev/null; then
+        has_compose=true
+    fi
     
-    if [[ ${#missing[@]} -gt 0 ]]; then
-        error "Missing Docker dependencies: ${missing[*]}"
-        error "Please install the missing dependencies"
+    if [[ "$has_compose" != "true" ]]; then
+        error "Missing Docker Compose (install 'docker-compose-plugin' or 'docker-compose')"
         return 1
     fi
     
