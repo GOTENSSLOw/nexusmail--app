@@ -709,3 +709,12 @@ make seed-users       # Crear user1/user2/user3
 make migrate          # Ejecutar migraciones Django
 make clean            # Borrar todo (volúmenes, venv, node_modules)
 ```
+
+## Scripts
+
+| Script | Propósito |
+|---|---|
+| `scripts/init-container.sh` | Inicializa el contenedor init de Docker. Crea usuarios del sistema, prepara la BD SQLite de Dovecot y genera el archivo passwd para autenticación. |
+| `scripts/create-user.sh` | Creación manual de usuarios para despliegue en VM (sin Docker). Útil para agregar usuarios individuales después del setup inicial. |
+| `infra/postfix/docker-entrypoint.sh` | Script de inicialización del contenedor Postfix. Configura la red, dominios y mapas de alias antes de arrancar el servicio. |
+
