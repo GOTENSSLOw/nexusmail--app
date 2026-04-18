@@ -31,16 +31,38 @@ for i in "${!USERS_ARR[@]}"; do
     chown -R "$user:$user" "/home/$user/Maildir"
     chmod -R 700 "/home/$user/Maildir"
     
-    echo "Created user: $user"
+    # Create Django user (for API authentication)
+    python manage.py shell -c "
+from django.contrib.auth.models import User
+if not User.objects.filter(username='$user').exists():
+    User.objects.create_user('$user', '$user@${MAIL_DOMAIN:-lan.local}', '$pass')
+    print('Created Django user: $user')
+else:
+    print('Django user $user already exists')
+"
+    
+    echo "Created system user: $user"
 done
 
 # Generate Dovecot-compatible passwd file to shared volume
 mkdir -p /etc/userdb
-USERS_COMMA="${USERS:-user1,user2,user3}"
-USER_PATTERN=$(echo "$USERS_COMMA" | tr ',' '|')
-grep -E "^($USER_PATTERN):" /etc/passwd > /etc/userdb/passwd
-grep -E "^($USER_PATTERN):" /etc/shadow > /etc/userdb/shadow
-chmod 600 /etc/userdb/shadow
+> /etc/userdb/passwd
+
+for i in "${!USERS_ARR[@]}"; do
+    user="${USERS_ARR[$i]}"
+    pass="${PASS_ARR[$i]}"
+    
+    # Get the user's UID and GID
+    uid=$(id -u "$user")
+    gid=$(id -g "$user")
+    
+    # Generate Dovecot passwd entry with CRYPT scheme
+    # Dovecot passwd format: user:{scheme}password:uid:gid:gecos:home:shell
+    crypt_pass=$(python3 -c "import crypt; print(crypt.crypt('$pass'))")
+    echo "$user:${CRYPT}$crypt_pass:$uid:$gid::/home/$user:/bin/bash" >> /etc/userdb/passwd
+done
+
+chmod 644 /etc/userdb/passwd
 echo "Generated /etc/userdb/passwd for Dovecot authentication"
 
 echo "=== Init Container: Done ==="
