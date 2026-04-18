@@ -6,6 +6,7 @@ services:
     environment:
       - maildomain=${MAIL_DOMAIN:-lan.local}
       - smtp_user=user1:user112345
+      - USERS=${USERS:-user1,user2,user3}
     volumes:
       - maildata:/home
     ports:
