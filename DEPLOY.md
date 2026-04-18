@@ -482,6 +482,16 @@ wireshark /tmp/nexusmail-capture.pcap &
 
 ## 5. Variables de Entorno
 
+### Archivos .env
+
+El proyecto usa múltiples archivos `.env` según el contexto:
+
+| Archivo | Propósito |
+|---|---|
+| `.env` (raíz) | Usado por Docker Compose para variables globales del stack. Definido en `env_file` del compose. |
+| `backend/.env.example` | Plantilla de referencia para setups backend-only (despliegue en VM sin Docker). Copiar a `backend/.env` y personalizar. |
+| `frontend/.env` | Opcional. Permite sobrescribir `VITE_API_URL` para desarrollo frontend independiente del backend. |
+
 Archivo: `backend/.env`
 
 | Variable | Default | Descripción |
