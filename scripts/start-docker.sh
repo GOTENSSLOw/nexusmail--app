@@ -66,8 +66,7 @@ wait_for_init() {
     while (( elapsed < max_wait )); do
         # Check if init container has exited
         local status
-        status=$(docker compose ps init --format json 2>/dev/null | \
-            docker compose ps init --format '{{.State}}' 2>/dev/null || echo "running")
+        status=$(docker compose ps --format '{{.Service}}:{{.State}}' 2>/dev/null | grep "^init:" | cut -d: -f2)
         
         if [[ "$status" == "exited" ]]; then
             ok "Init container completed"
