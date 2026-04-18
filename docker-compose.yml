@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   postfix:
-    image: catatnight/postfix
+    build: ./infra/postfix
     environment:
       - maildomain=${MAIL_DOMAIN:-lan.local}
       - smtp_user=user1:user112345
@@ -14,7 +14,7 @@ services:
       - nexus
 
   dovecot:
-    image: dovecot/dovecot
+    image: dovecot/dovecot:2.3.21
     volumes:
       - maildata:/home
       - ./infra/dovecot/dovecot.conf:/etc/dovecot/dovecot.conf:ro
