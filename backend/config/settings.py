@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-l-$+9u8yt1vz$zbd9nbk)zwe_sj$#e)4n57p=98k0k-^h=xgdu'
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "django-insecure-l-$+9u8yt1vz$zbd9nbk)zwe_sj$#e)4n57p=98k0k-^h=xgdu")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 
-ALLOWED_HOSTS = ["*"]
+# Mail domain
+MAIL_DOMAIN = os.environ.get("MAIL_DOMAIN", "lan.local")
+
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
 
 
 # Application definition
@@ -119,11 +123,13 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# BACANAL
+# Email — usar variables de entorno para poder correr en otra PC o Docker
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "127.0.0.1"         # IP de tu Postfix en LAN
-EMAIL_PORT = 25                   # Puerto SMTP
-EMAIL_USE_TLS = False             # LAN sin SSL
-EMAIL_HOST_USER = ""              # Opcional: usuarios locales
-EMAIL_HOST_PASSWORD = ""          # Opcional: si usas auth
-DEFAULT_FROM_EMAIL = "user1@lan.local"
+EMAIL_HOST = os.environ.get("SMTP_HOST", "127.0.0.1")
+EMAIL_PORT = int(os.environ.get("SMTP_PORT", "25"))
+EMAIL_USE_TLS = False
+EMAIL_HOST_USER = os.environ.get("SMTP_USER", "")
+EMAIL_HOST_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", "user1@lan.local")
+
+CORS_ALLOW_ALL_ORIGINS = True

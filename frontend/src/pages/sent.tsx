@@ -1,58 +1,56 @@
-import { useState } from 'react';
-import { EmailList } from './Dashboardpage/EmailList'; 
-import { EmailType } from './Dashboardpage/Dashboard';
-import './Dashboardpage/Dashboard.css';
-
-const mockSentEmails: EmailType[] = [
-  { 
-    id: 1, 
-    sender: "Para: Stripe Support", 
-    subject: "Re: Action required: Verify your email address", 
-    snippet: "Hola, ya envié los documentos solicitados para verificar mi cuenta. Saludos, Rossman.", 
-    time: "11:15 AM", 
-    unread: false 
-  },
-  { 
-    id: 2, 
-    sender: "Para: Equipo Debita", 
-    subject: "Avance del frontend en React", 
-    snippet: "Les adjunto mi parte del código. Avisen cuando el backend en Rust esté listo para conectarlo. Atte: Rossman.", 
-    time: "Ayer", 
-    unread: false 
-  },
-  { 
-    id: 3, 
-    sender: "Para: Linear Team", 
-    subject: "Feedback on new features", 
-    snippet: "La nueva actualización de Cycles está excelente. ¿Tienen planeado añadir más integraciones pronto? - Rossman", 
-    time: "Mar 12", 
-    unread: false 
-  }
-];
+import { useState, useEffect } from 'react';
+import { EmailList } from './EmailList';
+import { EmailType } from './Dashboard';
+import { useAuth } from '../context/AuthContext';
+import { fetchEmails } from '../services/api';
+import './Dashboard.css';
 
 export const Sent = () => {
+    const { username, password } = useAuth();
+    const [emails, setEmails] = useState<EmailType[]>([]);
     const [busqueda, setBusqueda] = useState<string>('');
+    const [loading, setLoading] = useState(true);
 
-    const correosFiltrados = mockSentEmails.filter((correo) => 
+    useEffect(() => {
+        if (!username || !password) return;
+        fetchEmails(username, password)
+            .then((data) => {
+                const mapped: EmailType[] = data
+                    .filter((e: any) => e.recipient !== `${username}@lan.local`)
+                    .map((e: any) => ({
+                        id: e.id,
+                        sender: `Para: ${e.recipient}`,
+                        subject: e.subject,
+                        snippet: e.snippet,
+                        time: e.time,
+                        unread: e.unread,
+                    }));
+                setEmails(mapped);
+            })
+            .catch(() => {})
+            .finally(() => setLoading(false));
+    }, [username, password]);
+
+    const correosFiltrados = emails.filter((correo) =>
         correo.subject.toLowerCase().includes(busqueda.toLowerCase()) ||
         correo.snippet.toLowerCase().includes(busqueda.toLowerCase()) ||
         correo.sender.toLowerCase().includes(busqueda.toLowerCase())
     );
 
+    if (loading) return <main className="main-content"><p>Cargando enviados...</p></main>;
+
     return (
         <main className="main-content">
             <header className="top-header">
-                <input 
-                    type="text" 
-                    placeholder="Buscar en enviados..." 
+                <input
+                    type="text"
+                    placeholder="Buscar en enviados..."
                     className="search-bar"
                     value={busqueda}
                     onChange={(e) => setBusqueda(e.target.value)}
                 />
             </header>
-
             <EmailList emails={correosFiltrados} />
-            
         </main>
     );
 };

@@ -1,24 +1,41 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
-import { ComposeModal } from './ComposeModal'; 
-import './Dashboardpage/Dashboard.css';
+import { ComposeModal } from './ComposeModal';
+import { useAuth } from '../context/AuthContext';
+import { fetchEmails } from '../services/api';
+import './Dashboard.css';
 
 export const Layout = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const cantidadCorreos = 2; 
+    const { username, password } = useAuth();
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    const loadUnreadCount = () => {
+        if (!username || !password) return;
+        fetchEmails(username, password)
+            .then((data) => {
+                const count = data.filter((e) => e.unread).length;
+                setUnreadCount(count);
+            })
+            .catch(() => {});
+    };
+
+    useEffect(() => {
+        loadUnreadCount();
+    }, [username, password]);
 
     return (
-        <div className="dashboard-container"> 
-            <Sidebar 
-                abrirModal={() => setIsModalOpen(true)} 
-                cantidadCorreos={cantidadCorreos}
+        <div className="dashboard-container">
+            <Sidebar
+                abrirModal={() => setIsModalOpen(true)}
+                cantidadCorreos={unreadCount}
             />
-            
-            <Outlet /> 
+
+            <Outlet />
 
             {isModalOpen && (
-                <ComposeModal cerrarModal={() => setIsModalOpen(false)} />
+                <ComposeModal cerrarModal={() => { setIsModalOpen(false); loadUnreadCount(); }} />
             )}
         </div>
     );

@@ -1,0 +1,42 @@
+# See /usr/share/postfix/main.cf.dist for a commented, more complete version
+
+# Basic settings
+maillog_file = /dev/stdout
+postscreen_greet_action = ignore
+
+# Domain and hostname
+myhostname = mail.${MAIL_DOMAIN}
+mydomain = ${MAIL_DOMAIN}
+myorigin = $mydomain
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+
+# Network
+inet_interfaces = all
+inet_protocols = ipv4
+mynetworks = 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+
+# Mail delivery - Maildir format
+home_mailbox = Maildir/
+mailbox_command =
+local_recipient_maps =
+
+# SMTP settings
+smtpd_banner = $myhostname ESMTP
+smtpd_recipient_restrictions =
+    permit_sasl_authenticated,
+    permit_mynetworks,
+    reject_unauth_destination
+
+# SASL Authentication
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $mydomain
+smtpd_sasl_type = cyrus
+smtpd_sasl_path = smtpd
+
+# Disable TLS for dev
+smtpd_tls_security_level = none
+smtp_tls_security_level = none
+
+# Size limit
+message_size_limit = 10485760

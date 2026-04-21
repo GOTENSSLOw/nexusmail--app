@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import './Dashboard.css';
-import { EmailList } from './EmailList'; 
+import { EmailList } from './EmailList';
+import { useAuth } from '../context/AuthContext';
+import { fetchEmails } from '../services/api';
 
 export interface EmailType {
     id: number;
@@ -10,20 +13,40 @@ export interface EmailType {
     unread: boolean;
 }
 
-const mockEmails: EmailType[] = [
-  { id: 1, sender: "Stripe Support", subject: "Action required: Verify your email address", snippet: "Please confirm your email address to continue using your Stripe account...", time: "10:30 AM", unread: true },
-  { id: 2, sender: "GitHub Notifications", subject: "[GitHub] A first-party App has been added", snippet: "You're receiving this email because a new application was authorized...", time: "Yesterday", unread: false },
-  { id: 3, sender: "Linear Team", subject: "New features in Linear: Cycles & Projects", snippet: "We've just released a major update to how we handle project planning...", time: "Mar 12", unread: true }
-];
-
 export const Dashboard = () => {
+    const { username, password } = useAuth();
+    const [emails, setEmails] = useState<EmailType[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (!username || !password) return;
+        setLoading(true);
+        fetchEmails(username, password)
+            .then((data) => {
+                const mapped: EmailType[] = data.map((e: any) => ({
+                    id: e.id,
+                    sender: e.recipient,
+                    subject: e.subject,
+                    snippet: e.snippet,
+                    time: e.time,
+                    unread: e.unread,
+                }));
+                setEmails(mapped);
+            })
+            .catch((err) => setError(err.message))
+            .finally(() => setLoading(false));
+    }, [username, password]);
+
+    if (loading) return <main className="main-content"><p>Cargando correos...</p></main>;
+    if (error) return <main className="main-content"><p style={{color:'red'}}>{error}</p></main>;
+
     return (
         <main className="main-content">
             <header className="top-header">
                 <input type="text" placeholder="Buscar correos..." className="search-bar"/>
             </header>
-
-            <EmailList emails={mockEmails} />
+            <EmailList emails={emails} />
         </main>
     );
 };

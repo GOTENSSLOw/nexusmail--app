@@ -1,10 +1,14 @@
+import os
 import imaplib
 import email
-from ..models import EmailMessage # Tu modelo de DB
+from django.conf import settings
+from ..models import EmailMessage
+
+IMAP_HOST = os.environ.get("IMAP_HOST", "127.0.0.1")
 
 def get_inbox_from_imap(user: str, password: str) -> list:
     """Extrae correos crudos del servidor local."""
-    M = imaplib.IMAP4('127.0.0.1')
+    M = imaplib.IMAP4(IMAP_HOST)
     M.login(user, password)
     M.select("INBOX")
     
@@ -25,7 +29,8 @@ def get_inbox_from_imap(user: str, password: str) -> list:
             body = msg.get_payload(decode=True).decode(errors="ignore")
 
         messages.append({
-            "uid": num.decode(), # Usar el UID de IMAP es mejor que el subject
+            "uid": num.decode(),
+            "message_id": msg.get("Message-ID"),
             "from": msg.get("From"),
             "subject": msg.get("Subject"),
             "body": body,
@@ -39,15 +44,18 @@ def sync_emails_with_db(user_obj, password):
     raw_emails = get_inbox_from_imap(user_obj.username, password)
     
     for mail in raw_emails:
-        # Usamos el subject + date como identificador único si no tienes UID estable
-        identifier = f"{mail['subject']}-{mail['date']}"
+        message_id = mail.get('message_id')
+        if message_id:
+            identifier = message_id
+        else:
+            identifier = f"{mail['uid']}-{mail['from']}-{mail['date']}"
         
         EmailMessage.objects.get_or_create(
             message_id_hash=identifier,
             user=user_obj,
             defaults={
                 'sender': mail['from'],
-                'recipient': f"{user_obj.username}@lan.local",
+                'recipient': f"{user_obj.username}@{settings.MAIL_DOMAIN}",
                 'subject': mail['subject'],
                 'body': mail['body'],
                 'unread': True

@@ -1,16 +1,50 @@
-# React + Vite
+# NexusMail Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + Vite email client for the NexusMail mail server stack.
 
-Currently, two official plugins are available:
+## Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+NexusMail Frontend is a single-page application that provides a modern web interface for reading and managing email. It communicates with the NexusMail backend API and handles IMAP operations through the Django server.
 
-## React Compiler
+## API Connection
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The frontend connects to the backend API at `http://localhost:8000`. This is configured via the `VITE_API_URL` environment variable (optional — defaults to `http://localhost:8000`).
 
-## Expanding the ESLint configuration
+## Development
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The dev server runs on `http://localhost:5173` by default.
+
+## Build
+
+```bash
+npm run build
+```
+
+Output goes to `dist/`. Serve with any static file server:
+
+```bash
+npx serve dist
+```
+
+## Docker Integration
+
+In the Docker Compose setup, the frontend runs in a container and is accessible at `http://localhost:5173`. The container uses Vite in preview mode to serve the production build.
+
+For local development while the API runs in Docker:
+
+```bash
+# In frontend/.env (optional)
+VITE_API_URL=http://localhost:8000
+```
+
+## Tech Stack
+
+- **React 18** — UI framework
+- **Vite** — Build tool and dev server
+- **TypeScript** — Type safety
