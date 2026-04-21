@@ -29,7 +29,7 @@ DEBUG = os.environ.get("DJANGO_DEBUG", "False").lower() == "true"
 # Mail domain
 MAIL_DOMAIN = os.environ.get("MAIL_DOMAIN", "lan.local")
 
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost").split(",")
+ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
 
 
 # Application definition

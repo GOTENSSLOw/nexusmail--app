@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LoginInput } from './LoginInput';
 import { useAuth } from '../../context/AuthContext';
-import { loginUser } from '../../services/api';
+import { loginUser, registerUser } from '../../services/api';
 
 export const LoginForm = () => {
     const navigate = useNavigate();
@@ -11,24 +11,29 @@ export const LoginForm = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [isRegistering, setIsRegistering] = useState(false);
 
-    const handleLogin = async (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
         try {
-            await loginUser(username, password);
+            if (isRegistering) {
+                await registerUser(username, password);
+            } else {
+                await loginUser(username, password);
+            }
             login(username, password);
             navigate('/inbox');
         } catch (err) {
-            setError(err.message || 'Credenciales inválidas');
+            setError(err.message || (isRegistering ? 'Error al registrar' : 'Credenciales inválidas'));
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <form className="login-form" onSubmit={handleLogin}>
+        <form className="login-form" onSubmit={handleSubmit}>
             {error && <div style={{ color: 'red', marginBottom: '10px' }}>{error}</div>}
             <LoginInput
                 label="Nickname"
@@ -55,8 +60,16 @@ export const LoginForm = () => {
             </div>
 
             <button type="submit" className="btn-primary" disabled={loading}>
-                {loading ? 'Ingresando...' : 'Ingresar →'}
+                {loading ? 'Procesando...' : (isRegistering ? 'Registrarse →' : 'Ingresar →')}
             </button>
+            <div style={{ marginTop: '15px', textAlign: 'center' }}>
+                <span 
+                    onClick={() => setIsRegistering(!isRegistering)} 
+                    style={{ cursor: 'pointer', color: '#666', textDecoration: 'underline', fontSize: '14px' }}
+                >
+                    {isRegistering ? '¿Ya tienes cuenta? Ingresa aquí' : '¿No tienes cuenta? Regístrate'}
+                </span>
+            </div>
         </form>
     );
 };

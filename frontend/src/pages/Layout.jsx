@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from './Sidebar';
 import { ComposeModal } from './ComposeModal';
@@ -11,7 +11,7 @@ export const Layout = () => {
     const { username, password } = useAuth();
     const [unreadCount, setUnreadCount] = useState(0);
 
-    const loadUnreadCount = () => {
+    const loadUnreadCount = useCallback(() => {
         if (!username || !password) return;
         fetchEmails(username, password)
             .then((data) => {
@@ -19,11 +19,11 @@ export const Layout = () => {
                 setUnreadCount(count);
             })
             .catch(() => {});
-    };
+    }, [username, password]);
 
     useEffect(() => {
         loadUnreadCount();
-    }, [username, password]);
+    }, [loadUnreadCount]);
 
     return (
         <div className="dashboard-container">
