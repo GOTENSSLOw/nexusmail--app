@@ -1,8 +1,8 @@
+import "./dashboard.css";
 import { useState, useEffect } from 'react';
-import './Dashboard.css';
 import { EmailList } from './EmailList';
-import { useAuth } from '../context/AuthContext';
-import { fetchEmails } from '../services/api';
+import { useAuth } from '../../context/AuthContext';
+import { fetchEmails } from '../../services/api';
 
 export interface EmailType {
     id: number;

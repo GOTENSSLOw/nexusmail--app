@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { EmailList } from './EmailList';
-import { EmailType } from './Dashboard';
+import { EmailList } from './Dashboardpage/EmailList';
+import { EmailType } from './Dashboardpage/Dashboard';
 import { useAuth } from '../context/AuthContext';
 import { fetchEmails } from '../services/api';
-import './Dashboard.css';
+import './Dashboardpage/dashboard.css';
 
 export const Sent = () => {
     const { username, password } = useAuth();
