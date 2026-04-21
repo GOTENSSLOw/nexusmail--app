@@ -4,7 +4,7 @@ import { Sidebar } from './Sidebar';
 import { ComposeModal } from './ComposeModal';
 import { useAuth } from '../context/AuthContext';
 import { fetchEmails } from '../services/api';
-import './Dashboard.css';
+import './Dashboardpage/Dashboard.css';
 
 export const Layout = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
