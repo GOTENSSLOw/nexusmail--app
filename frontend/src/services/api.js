@@ -14,7 +14,7 @@ export async function registerUser(username, password) {
 }
 
 export async function loginUser(username, password) {
-  const res = await fetch(`${API_BASE}/read-emails/${encodeURIComponent(username)}/`, {
+  const res = await fetch(`${API_BASE}/read-emails/${encodeURIComponent(username)}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ password }),

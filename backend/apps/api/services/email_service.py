@@ -41,7 +41,14 @@ def get_inbox_from_imap(user: str, password: str) -> list:
 
 def sync_emails_with_db(user_obj, password):
     """Orquestador: Trae de IMAP y guarda en Django."""
-    raw_emails = get_inbox_from_imap(user_obj.username, password)
+    try:
+        raw_emails = get_inbox_from_imap(user_obj.username, password)
+    except ConnectionRefusedError:
+        print("IMAP Connection Refused - skipping IMAP sync.")
+        raw_emails = []
+    except Exception as e:
+        print(f"IMAP Sync error: {e}")
+        raw_emails = []
     
     for mail in raw_emails:
         message_id = mail.get('message_id')

@@ -8,7 +8,6 @@ from django.contrib.auth.models import User
 from django.conf import settings
 from .models import EmailMessage
 
-from .services.system_service import create_system_user
 from .services.email_service import get_inbox_from_imap, sync_emails_with_db
 from .validators import sanitize_username, is_valid_username
 
@@ -68,12 +67,7 @@ def register_user(request):
             return Response({"error": "User already exists"}, status=400)
         
         User.objects.create_user(username=username, password=password)
-        success = create_system_user(username, password)
         
-        if not success:
-            User.objects.filter(username=username).delete()
-            return Response({"error": "System configuration failed"}, status=500)
-
         return Response({
             "message": "User registered successfully",
             "username": username
@@ -113,4 +107,5 @@ def read_emails(request, username):
     except User.DoesNotExist:
         return Response({"error": "User not found"}, status=404)
     except Exception as e:
+        print(e)
         return Response({"error": f"Error: {str(e)}"}, status=500)
