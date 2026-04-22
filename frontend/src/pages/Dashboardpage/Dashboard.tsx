@@ -28,15 +28,18 @@ export const Dashboard = () => {
         setLoading(true);
         fetchEmails(username, password)
             .then((data) => {
-                const mapped: EmailType[] = data.map((e: any) => ({
-                    id: e.id,
-                    sender: e.recipient,
-                    subject: e.subject,
-                    snippet: e.snippet,
-                    body: e.body,
-                    time: e.time,
-                    unread: e.unread,
-                }));
+                const userEmail = `${username}@lan.local`;
+                const mapped: EmailType[] = data
+                    .filter((e: any) => e.recipient === userEmail)
+                    .map((e: any) => ({
+                        id: e.id,
+                        sender: e.sender,
+                        subject: e.subject,
+                        snippet: e.snippet,
+                        body: e.body,
+                        time: e.time,
+                        unread: e.unread,
+                    }));
                 setEmails(mapped);
             })
             .catch((err) => setError(err.message))
