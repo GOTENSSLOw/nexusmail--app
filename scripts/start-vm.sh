@@ -184,7 +184,7 @@ start_django() {
     cd "$backend_dir"
     
     # Start Django in background, redirect output to log file
-    nohup python3 manage.py runserver 0.0.0.0:8000 >> "$log_file" 2>&1 &
+    nohup "${VENV_PYTHON}" manage.py runserver 0.0.0.0:8000 >> "$log_file" 2>&1 &
     local django_pid=$!
     
     cd "$PROJECT_ROOT"

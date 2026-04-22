@@ -33,23 +33,64 @@ mark_initialized() {
 }
 
 # =============================================================================
+# Virtualenv setup
+# =============================================================================
+
+# Path to the venv inside the backend directory
+VENV_DIR="${PROJECT_ROOT}/backend/.venv"
+VENV_PYTHON="${VENV_DIR}/bin/python3"
+
+setup_venv() {
+    header "Setting up Python virtualenv"
+
+    local backend_dir="${PROJECT_ROOT}/backend"
+    local req_file="${backend_dir}/requirements.txt"
+
+    # Create the venv if it doesn't exist
+    if [[ ! -f "${VENV_PYTHON}" ]]; then
+        info "Creating virtualenv at ${VENV_DIR}"
+        if ! python3 -m venv "${VENV_DIR}"; then
+            error "Failed to create virtualenv"
+            return 1
+        fi
+        ok "Virtualenv created"
+    else
+        info "Virtualenv already exists at ${VENV_DIR}"
+    fi
+
+    # Install/upgrade dependencies
+    if [[ -f "$req_file" ]]; then
+        info "Installing dependencies from requirements.txt"
+        if ! "${VENV_DIR}/bin/pip" install -q --upgrade pip -r "$req_file"; then
+            error "Failed to install dependencies"
+            return 1
+        fi
+        ok "Dependencies installed"
+    else
+        warn "requirements.txt not found at ${req_file}, skipping pip install"
+    fi
+
+    return 0
+}
+
+# =============================================================================
 # Django migrations
 # =============================================================================
 
 run_migrations() {
     header "Running Django migrations"
-    
+
     local backend_dir="${PROJECT_ROOT}/backend"
-    
+
     if [[ ! -d "$backend_dir" ]]; then
         error "Backend directory not found: $backend_dir"
         return 1
     fi
-    
+
     cd "$backend_dir"
-    
-    info "Running: python manage.py migrate --noinput"
-    if python3 manage.py migrate --noinput; then
+
+    info "Running: ${VENV_PYTHON} manage.py migrate --noinput"
+    if "${VENV_PYTHON}" manage.py migrate --noinput; then
         ok "Migrations complete"
         cd "$PROJECT_ROOT"
         return 0
@@ -143,7 +184,7 @@ create_django_users() {
         fi
         
         # Create Django user via manage.py shell
-        if python3 manage.py shell -c "
+        if "${VENV_PYTHON}" manage.py shell -c "
 from django.contrib.auth.models import User
 if not User.objects.filter(username='$user').exists():
     User.objects.create_user('$user', '$email', '$pass')
@@ -246,6 +287,12 @@ do_init() {
         load_env
     fi
     
+    # Ensure virtualenv and dependencies are ready
+    if ! setup_venv; then
+        error "Init failed at virtualenv setup step"
+        return 1
+    fi
+
     # Run each initialization step
     if ! run_migrations; then
         error "Init failed at migrations step"
