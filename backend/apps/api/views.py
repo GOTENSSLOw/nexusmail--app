@@ -103,7 +103,8 @@ def read_emails(request, username):
             "id": e.id,
             "recipient": e.recipient,
             "subject": e.subject,
-            "snippet": e.snippet, # Asegúrate de que el modelo genere esto en el save()
+            "snippet": e.snippet,
+            "body": e.body,
             "time": e.time.strftime("%Y-%m-%d %H:%M:%S"),
             "unread": e.unread
         } for e in emails]

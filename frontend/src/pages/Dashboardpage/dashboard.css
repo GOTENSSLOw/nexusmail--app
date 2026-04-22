@@ -227,6 +227,138 @@
 }
 
 /* =========================================
+   INBOX LAYOUT (lista + viewer)
+   ========================================= */
+
+.inbox-layout {
+    display: flex;
+    flex: 1;
+    overflow: hidden;
+}
+
+.inbox-layout .email-list {
+    flex: 1;
+    min-width: 0;
+    overflow-y: auto;
+    border-right: 1px solid #e2e8f0;
+    padding: 0;
+}
+
+.inbox-layout--split .email-list {
+    max-width: 380px;
+    flex: 0 0 380px;
+}
+
+/* Fila seleccionada */
+.email-row--selected {
+    background-color: #eff6ff !important;
+    box-shadow: inset 4px 0 0 #2563eb !important;
+}
+
+/* Fila no leída */
+.email-row--unread .email-sender,
+.email-row--unread .email-subject {
+    font-weight: 700;
+    color: #0f172a;
+}
+
+/* =========================================
+   EMAIL VIEWER
+   ========================================= */
+
+.email-viewer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background-color: #ffffff;
+    animation: slideInRight 0.2s ease-out;
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(24px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.email-viewer-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding: 24px 28px 20px;
+    border-bottom: 1px solid #e2e8f0;
+    gap: 16px;
+    flex-shrink: 0;
+}
+
+.email-viewer-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+}
+
+.email-viewer-subject {
+    font-size: 18px;
+    font-weight: 700;
+    color: #0f172a;
+    line-height: 1.3;
+    word-break: break-word;
+}
+
+.email-viewer-details {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 13px;
+    color: #64748b;
+    flex-wrap: wrap;
+}
+
+.email-viewer-sender strong {
+    color: #334155;
+}
+
+.btn-close-viewer {
+    background: none;
+    border: none;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #94a3b8;
+    padding: 4px 8px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    line-height: 1;
+    transition: color 0.2s, background-color 0.2s;
+}
+
+.btn-close-viewer:hover {
+    color: #ef4444;
+    background-color: #fef2f2;
+}
+
+.email-viewer-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 28px;
+    font-size: 15px;
+    line-height: 1.75;
+    color: #334155;
+    white-space: pre-wrap;
+}
+
+.email-viewer-body p {
+    margin-bottom: 4px;
+}
+
+.email-viewer-no-body {
+    color: #94a3b8;
+    font-style: italic;
+}
+
+
+
+/* =========================================
    MODAL COMPOSE
    ========================================= */
 
