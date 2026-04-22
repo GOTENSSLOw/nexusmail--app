@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { EmailList } from './Dashboardpage/EmailList';
+import { EmailViewer } from './Dashboardpage/EmailViewer';
 import { EmailType } from './Dashboardpage/Dashboard';
 import { useAuth } from '../context/AuthContext';
 import { fetchEmails } from '../services/api';
@@ -10,18 +11,21 @@ export const Sent = () => {
     const [emails, setEmails] = useState<EmailType[]>([]);
     const [busqueda, setBusqueda] = useState<string>('');
     const [loading, setLoading] = useState(true);
+    const [selectedEmail, setSelectedEmail] = useState<EmailType | null>(null);
 
     useEffect(() => {
         if (!username || !password) return;
         fetchEmails(username, password)
             .then((data) => {
+                const userEmail = `${username}@lan.local`;
                 const mapped: EmailType[] = data
-                    .filter((e: any) => e.recipient !== `${username}@lan.local`)
+                    .filter((e: any) => e.recipient !== userEmail)
                     .map((e: any) => ({
                         id: e.id,
                         sender: `Para: ${e.recipient}`,
                         subject: e.subject,
                         snippet: e.snippet,
+                        body: e.body,
                         time: e.time,
                         unread: e.unread,
                     }));
@@ -50,7 +54,19 @@ export const Sent = () => {
                     onChange={(e) => setBusqueda(e.target.value)}
                 />
             </header>
-            <EmailList emails={correosFiltrados} />
+            <div className={`inbox-layout${selectedEmail ? ' inbox-layout--split' : ''}`}>
+                <EmailList
+                    emails={correosFiltrados}
+                    selectedId={selectedEmail?.id ?? null}
+                    onSelect={setSelectedEmail}
+                />
+                {selectedEmail && (
+                    <EmailViewer
+                        email={selectedEmail}
+                        onClose={() => setSelectedEmail(null)}
+                    />
+                )}
+            </div>
         </main>
     );
 };
