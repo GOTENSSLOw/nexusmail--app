@@ -69,6 +69,23 @@ has_systemd() {
 }
 
 # =============================================================================
+# Detect VM real IP (non-loopback)
+# Used so Vite proxy targets the real interface instead of 127.0.0.1,
+# making frontend<->backend traffic visible to Wireshark on the host.
+# =============================================================================
+
+detect_vm_ip() {
+    local ip
+    # Primary method: default route source IP
+    ip=$(ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K[0-9.]+')
+    if [[ -z "$ip" ]]; then
+        # Fallback: first non-loopback IPv4 address
+        ip=$(hostname -I 2>/dev/null | awk '{print $1}')
+    fi
+    echo "${ip:-127.0.0.1}"
+}
+
+# =============================================================================
 # Start Postfix
 # =============================================================================
 
@@ -259,6 +276,12 @@ start_frontend() {
         ok "npm install complete"
     fi
 
+    # Export the VM's real IP so Vite proxy routes through the network
+    # interface instead of loopback — allows Wireshark capture from host
+    export VITE_BACKEND_HOST
+    VITE_BACKEND_HOST=$(detect_vm_ip)
+    info "Proxy target: http://${VITE_BACKEND_HOST}:8000 (Wireshark-visible)"
+
     # Start frontend in background, redirect output to log file
     nohup npm run dev -- --host 0.0.0.0 --port 5173 --strictPort >> "$log_file" 2>&1 &
     local frontend_pid=$!
@@ -287,16 +310,18 @@ stop_frontend() {
         info "Frontend is not running"
     fi
 
-    # Kill any leftover node/vite processes holding ports 5173-5180
+    # Kill any leftover node/vite processes holding frontend ports
     # (can happen after failed start attempts)
+    info "Cleaning up any leftover Vite/node processes..."
     for port in 5173 5174 5175 5176 5177 5178 5179 5180; do
-        local pid
-        pid=$(lsof -ti tcp:"$port" 2>/dev/null || true)
-        if [[ -n "$pid" ]]; then
-            info "Killing leftover process on port $port (PID: $pid)"
-            kill "$pid" 2>/dev/null || true
-        fi
+        fuser -k "${port}/tcp" 2>/dev/null || true
     done
+    # Belt-and-suspenders: also kill by process name
+    pkill -f "vite.*5173" 2>/dev/null || true
+    pkill -f "vite.*5174" 2>/dev/null || true
+    pkill -f "vite.*5175" 2>/dev/null || true
+    pkill -f "vite.*5176" 2>/dev/null || true
+    pkill -f "vite.*5177" 2>/dev/null || true
 }
 
 # =============================================================================
@@ -392,13 +417,17 @@ show_status_table() {
 # =============================================================================
 
 show_service_urls() {
+    local vm_ip
+    vm_ip=$(detect_vm_ip)
     echo ""
     header "Service URLs"
     echo ""
-    echo "  Frontend:  http://localhost:5173"
-    echo "  Django:     http://localhost:8000"
-    echo "  SMTP:       localhost:25"
-    echo "  IMAP:      localhost:143"
+    echo "  Frontend:  http://${vm_ip}:5173"
+    echo "  Django:    http://${vm_ip}:8000"
+    echo "  SMTP:      ${vm_ip}:25"
+    echo "  IMAP:      ${vm_ip}:143"
+    echo ""
+    info "Proxy target: http://${vm_ip}:8000 (traffic visible on bridge interface)"
     echo ""
 }
 
