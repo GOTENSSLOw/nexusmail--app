@@ -260,7 +260,7 @@ start_frontend() {
     fi
 
     # Start frontend in background, redirect output to log file
-    nohup npm run dev -- --host 0.0.0.0 --port 5173 >> "$log_file" 2>&1 &
+    nohup npm run dev -- --host 0.0.0.0 --port 5173 --strictPort >> "$log_file" 2>&1 &
     local frontend_pid=$!
     
     cd "$PROJECT_ROOT"
@@ -280,12 +280,23 @@ start_frontend() {
 
 stop_frontend() {
     header "Stopping Frontend"
-    
+
     if is_running "frontend"; then
         kill_service "frontend"
     else
         info "Frontend is not running"
     fi
+
+    # Kill any leftover node/vite processes holding ports 5173-5180
+    # (can happen after failed start attempts)
+    for port in 5173 5174 5175 5176 5177 5178 5179 5180; do
+        local pid
+        pid=$(lsof -ti tcp:"$port" 2>/dev/null || true)
+        if [[ -n "$pid" ]]; then
+            info "Killing leftover process on port $port (PID: $pid)"
+            kill "$pid" 2>/dev/null || true
+        fi
+    done
 }
 
 # =============================================================================
