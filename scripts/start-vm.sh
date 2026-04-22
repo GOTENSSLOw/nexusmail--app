@@ -244,6 +244,17 @@ start_frontend() {
 
     cd "$frontend_dir"
 
+    # Install node_modules if missing
+    if [[ ! -d "node_modules" ]]; then
+        info "node_modules not found, running npm install..."
+        if ! npm install >> "$log_file" 2>&1; then
+            error "npm install failed — check $log_file"
+            cd "$PROJECT_ROOT"
+            return 1
+        fi
+        ok "npm install complete"
+    fi
+
     # Start frontend in background, redirect output to log file
     nohup npm run dev -- --host 0.0.0.0 --port 5173 >> "$log_file" 2>&1 &
     local frontend_pid=$!
@@ -545,10 +556,10 @@ start_all() {
     fi
     
     header "Waiting for Frontend"
-    if wait_for_port 5173 30; then
+    if wait_for_port 5173 90; then
         ok "Frontend (port 5173) is ready"
     else
-        error "Frontend did not become ready within 30s"
+        error "Frontend did not become ready within 90s"
         error "Check logs: ${PROJECT_ROOT}/${LOG_DIR}/frontend.log"
         exit 1
     fi
