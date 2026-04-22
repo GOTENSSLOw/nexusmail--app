@@ -180,9 +180,12 @@ start_django() {
     
     info "Starting Django on 0.0.0.0:8000"
     info "Log file: $log_file"
-    
+
+    # Ensure log directory exists before nohup tries to write
+    mkdir -p "$(dirname "$log_file")"
+
     cd "$backend_dir"
-    
+
     # Start Django in background, redirect output to log file
     nohup "${VENV_PYTHON}" manage.py runserver 0.0.0.0:8000 >> "$log_file" 2>&1 &
     local django_pid=$!
@@ -235,9 +238,12 @@ start_frontend() {
     
     info "Starting Frontend on 0.0.0.0:5173"
     info "Log file: $log_file"
-    
+
+    # Ensure log directory exists before nohup tries to write
+    mkdir -p "$(dirname "$log_file")"
+
     cd "$frontend_dir"
-    
+
     # Start frontend in background, redirect output to log file
     nohup npm run dev -- --host 0.0.0.0 --port 5173 >> "$log_file" 2>&1 &
     local frontend_pid=$!
