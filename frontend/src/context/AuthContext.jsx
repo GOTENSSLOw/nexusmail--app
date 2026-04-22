@@ -1,12 +1,29 @@
 import { createContext, useContext, useState } from 'react';
 
+const AUTH_STORAGE_KEY = 'nexusmail_auth';
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null); // { username, password }
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem(AUTH_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : null;
+    } catch {
+      return null;
+    }
+  }); // { username, password }
 
-  const login = (username, password) => setUser({ username, password });
-  const logout = () => setUser(null);
+  const login = (username, password) => {
+    const credentials = { username, password };
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(credentials));
+    setUser(credentials);
+  };
+
+  const logout = () => {
+    localStorage.removeItem(AUTH_STORAGE_KEY);
+    setUser(null);
+  };
 
   return (
     <AuthContext.Provider value={{
