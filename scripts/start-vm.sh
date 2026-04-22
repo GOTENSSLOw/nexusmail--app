@@ -186,6 +186,10 @@ start_django() {
 
     cd "$backend_dir"
 
+    # Ensure Django accepts all hosts and runs in debug mode on the VM
+    export DJANGO_DEBUG="${DJANGO_DEBUG:-True}"
+    export DJANGO_ALLOWED_HOSTS="${DJANGO_ALLOWED_HOSTS:-*}"
+
     # Start Django in background, redirect output to log file
     nohup "${VENV_PYTHON}" manage.py runserver 0.0.0.0:8000 >> "$log_file" 2>&1 &
     local django_pid=$!
